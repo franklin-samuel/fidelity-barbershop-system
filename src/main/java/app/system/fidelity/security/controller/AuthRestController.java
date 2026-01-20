@@ -24,7 +24,7 @@ public class AuthRestController {
     private final CreateTokenPort createTokenPort;
     private final RefreshTokenPort refreshTokenPort;
 
-    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(name = "/login", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<JwtResponse> login(@RequestBody final AuthRequest authRequest) {
 
         final Context context = new Context();

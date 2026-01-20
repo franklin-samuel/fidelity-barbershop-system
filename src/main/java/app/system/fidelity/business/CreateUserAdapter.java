@@ -6,6 +6,7 @@ import app.system.fidelity.core.persistence.UserRepositoryPort;
 import app.system.fidelity.domain.User;
 import app.system.fidelity.domain.exceptions.BusinessException;
 import lombok.AllArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
 public class CreateUserAdapter implements CreateUserPort {
 
     private UserRepositoryPort userRepositoryPort;
+    private PasswordEncoder passwordEncoder;
 
     @Override
     public User execute(final Context context) {
@@ -33,7 +35,7 @@ public class CreateUserAdapter implements CreateUserPort {
         User newUser = User.builder()
                 .name(user.getName())
                 .email(user.getEmail())
-                .password(user.getPassword())
+                .password(passwordEncoder.encode(user.getPassword()))
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
