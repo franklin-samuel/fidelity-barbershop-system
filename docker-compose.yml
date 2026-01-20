@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: postgres-db-fidelity
+    restart: always
+    environment:
+      POSTGRES_DB: fidelity_db
+      POSTGRES_USER: fidelity
+      POSTGRES_PASSWORD: fidelity
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data'
+
+volumes:
+  postgres_data:

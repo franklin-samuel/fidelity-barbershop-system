@@ -1,0 +1,28 @@
+package app.system.fidelity.domain;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Data
+@SuperBuilder
+@NoArgsConstructor
+public class AbstractDomain {
+
+    private UUID id;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
+
+    private Boolean deletedAt;
+
+    public void validate() {
+
+    }
+
+
+}
