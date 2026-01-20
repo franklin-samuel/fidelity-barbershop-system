@@ -28,7 +28,8 @@ public abstract class AbstractEntity<K> {
     @Column(name = "modified_at", nullable = false)
     private LocalDateTime modifiedAt;
 
-    @Column(nullable = false)
-    private Boolean active = true;
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 
 }

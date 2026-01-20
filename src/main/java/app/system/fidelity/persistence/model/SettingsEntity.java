@@ -14,7 +14,7 @@ import java.util.UUID;
 @Setter
 @SuperBuilder
 @NoArgsConstructor
-public class SettingsEntity extends AbstractEntity {
+public class SettingsEntity extends AbstractEntity<UUID> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "UUID")
