@@ -10,7 +10,7 @@ import lombok.experimental.SuperBuilder;
 import java.util.UUID;
 
 @Entity
-@Table(name = "users")
+@Table(name = "customers")
 @Getter
 @Setter
 @SuperBuilder
