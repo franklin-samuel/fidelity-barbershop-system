@@ -55,4 +55,12 @@ public class CustomerRepositoryAdapter implements CustomerRepositoryPort {
         return repository.existsByEmail(email);
     }
 
+    @Override
+    public List<Customer> findByNameOrEmailOrPhoneNumber(final String searchTerm) {
+        return repository.searchByNameOrEmailOrPhoneNumber(searchTerm)
+                .stream()
+                .map(mapper::map)
+                .toList();
+    }
+
 }
