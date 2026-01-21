@@ -14,4 +14,8 @@ public interface CustomerRepositoryPort extends BaseRepositoryPort<Customer> {
 
     List<Customer> findByNameOrEmailOrPhoneNumber(String searchTerm);
 
+    long countAll();
+
+    long countByHaircutCountGreaterThanEqual(int haircutCount);
+
 }

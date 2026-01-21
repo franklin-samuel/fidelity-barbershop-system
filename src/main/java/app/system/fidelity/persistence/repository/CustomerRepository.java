@@ -23,4 +23,6 @@ public interface CustomerRepository extends JpaRepository<CustomerEntity, UUID> 
             "c.deletedAt IS NULL")
     List<CustomerEntity> searchByNameOrEmailOrPhoneNumber(@Param("searchTerm") String searchTerm);
 
+    long countByHaircutCountGreaterThanEqual(Integer haircutCount);
+
 }

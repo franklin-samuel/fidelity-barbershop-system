@@ -4,4 +4,8 @@ import app.system.fidelity.core.persistence.commons.BaseRepositoryPort;
 import app.system.fidelity.domain.Haircut;
 
 public interface HaircutRepositoryPort extends BaseRepositoryPort<Haircut> {
+
+    long countAll();
+    long countByIsFree(boolean isFree);
+
 }

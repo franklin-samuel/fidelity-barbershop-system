@@ -63,4 +63,14 @@ public class CustomerRepositoryAdapter implements CustomerRepositoryPort {
                 .toList();
     }
 
+    @Override
+    public long countAll() {
+        return repository.count();
+    }
+
+    @Override
+    public long countByHaircutCountGreaterThanEqual(final int haircutCount) {
+        return repository.countByHaircutCountGreaterThanEqual(haircutCount);
+    }
+
 }

@@ -43,4 +43,14 @@ public class HaircutRepositoryAdapter implements HaircutRepositoryPort {
                 .map(mapper::map).toList();
     }
 
+    @Override
+    public long countAll() {
+        return repository.count();
+    }
+
+    @Override
+    public long countByIsFree(boolean isFree) {
+        return repository.countByIsFree(isFree);
+    }
+
 }
