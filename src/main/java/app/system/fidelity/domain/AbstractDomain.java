@@ -18,7 +18,7 @@ public class AbstractDomain {
 
     private LocalDateTime updatedAt;
 
-    private Boolean deletedAt;
+    private LocalDateTime deletedAt;
 
     public void validate() {
 
