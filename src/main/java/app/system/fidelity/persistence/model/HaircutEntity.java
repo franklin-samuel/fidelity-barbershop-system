@@ -23,13 +23,13 @@ public class HaircutEntity extends AbstractEntity<UUID> {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", foreignKey = @ForeignKey(name = "fk_haircut_customer"))
-    private CustomerEntity customer_id;
+    private CustomerEntity customerId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "registered_by", foreignKey = @ForeignKey(name = "fk_haircut_user"))
-    private UserEntity registered_by;
+    private UserEntity registeredBy;
 
     @Column(name = "is_free")
-    private Boolean is_free;
+    private Boolean isFree;
 
 }

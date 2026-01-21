@@ -22,6 +22,6 @@ public class SettingsEntity extends AbstractEntity<UUID> {
     private UUID id;
 
     @Column(name = "haircuts_for_free")
-    private Integer haircuts_for_free;
+    private Integer haircutsForFree;
 
 }
