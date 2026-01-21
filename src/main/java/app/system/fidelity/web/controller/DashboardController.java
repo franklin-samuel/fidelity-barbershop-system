@@ -1,4 +1,4 @@
 package app.system.fidelity.web.controller;
 
-public class HomeController {
+public class DashboardController {
 }
