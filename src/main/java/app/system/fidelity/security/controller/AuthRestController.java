@@ -8,6 +8,7 @@ import app.system.fidelity.domain.Jwt;
 import app.system.fidelity.security.model.AuthRequest;
 import app.system.fidelity.security.model.JwtResponse;
 import app.system.fidelity.security.model.RefreshTokenRequest;
+import app.system.fidelity.web.commons.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,29 +26,35 @@ public class AuthRestController {
     private final RefreshTokenPort refreshTokenPort;
 
     @PostMapping(path = "/login", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<JwtResponse> login(@RequestBody final AuthRequest authRequest) {
+    public ResponseEntity<ApiResponse<JwtResponse>> login(@RequestBody final AuthRequest authRequest) {
 
         final Context context = new Context();
         context.put("username", authRequest.username());
         context.put("password", authRequest.password());
         final Jwt jwt = createTokenPort.execute(context);
-        return ResponseEntity.ok(JwtResponse.builder()
+
+        JwtResponse data = JwtResponse.builder()
                 .accessToken(jwt.getAccessToken())
                 .refreshToken(jwt.getRefreshToken())
                 .type(jwt.getType())
-                .build());
+                .build();
+
+        return ResponseEntity.ok(ApiResponse.success(data));
     }
 
     @PostMapping(path = "/refresh", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<JwtResponse> refreshToken(@RequestBody final RefreshTokenRequest refreshTokenRequest) {
+    public ResponseEntity<ApiResponse<JwtResponse>> refreshToken(@RequestBody final RefreshTokenRequest refreshTokenRequest) {
         final Context context = new Context();
         context.put("refreshToken", refreshTokenRequest.refreshToken());
         final Jwt jwt = refreshTokenPort.execute(context);
-        return ResponseEntity.ok(JwtResponse.builder()
+
+        JwtResponse data = JwtResponse.builder()
                 .accessToken(jwt.getAccessToken())
                 .refreshToken(jwt.getRefreshToken())
                 .type(jwt.getType())
-                .build());
+                .build();
+
+        return ResponseEntity.ok(ApiResponse.success(data));
     }
 
 }
