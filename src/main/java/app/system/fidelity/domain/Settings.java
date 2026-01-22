@@ -10,5 +10,5 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
 public class Settings extends AbstractDomain{
-    private Integer haircuts_for_free;
+    private Integer haircutsForFree;
 }
