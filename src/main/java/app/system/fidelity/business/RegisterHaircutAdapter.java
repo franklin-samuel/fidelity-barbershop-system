@@ -49,9 +49,9 @@ public class RegisterHaircutAdapter implements RegisterHaircutPort {
         boolean isFree = customer.getHaircutCount() >= settings.getHaircutsForFree();
 
         Haircut haircut = Haircut.builder()
-                .customer_id(customerId)
-                .registered_by(registeredBy)
-                .is_free(isFree)
+                .customerId(customerId)
+                .registeredBy(registeredBy)
+                .isFree(isFree)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();

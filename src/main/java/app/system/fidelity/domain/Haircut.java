@@ -13,8 +13,8 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = false)
 public class Haircut extends AbstractDomain{
 
-    private UUID customer_id;
-    private UUID registered_by;
-    private Boolean is_free;
+    private UUID customerId;
+    private UUID registeredBy;
+    private Boolean isFree;
 
 }
