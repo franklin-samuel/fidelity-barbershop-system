@@ -41,7 +41,7 @@ public class SettingsController {
     ) {
 
         Settings settingsForm = Settings.builder()
-                .haircuts_for_free(request.haircutsForFree())
+                .haircutsForFree(request.haircutsForFree())
                 .build();
 
         Context context = new Context(settingsForm);
