@@ -15,7 +15,8 @@ public class CorsConfiguration {
         final var configuration = new org.springframework.web.cors.CorsConfiguration();
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedOrigins(List.of(
-                "http://localhost:3000"
+                "http://localhost:3000",
+                "https://nagaragem.vercel.app"
         ));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
