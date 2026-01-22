@@ -25,11 +25,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             final HttpServletResponse response,
             final FilterChain filterChain) throws ServletException, IOException {
 
-        if (!request.getServletPath().startsWith("/api/")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
         final var authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
