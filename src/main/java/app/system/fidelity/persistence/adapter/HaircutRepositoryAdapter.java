@@ -21,7 +21,7 @@ import static java.util.Optional.of;
 public class HaircutRepositoryAdapter implements HaircutRepositoryPort {
 
     private final HaircutRepository repository;
-    private HaircutMapper mapper;
+    private final HaircutMapper mapper;
 
     @Override
     public Optional<Haircut> get(final UUID id) {
