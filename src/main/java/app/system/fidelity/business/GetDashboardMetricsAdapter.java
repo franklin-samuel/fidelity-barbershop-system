@@ -35,7 +35,7 @@ public class GetDashboardMetricsAdapter implements GetDashboardMetricsPort {
         long freeHaircutsGiven = haircutRepository.countByIsFree(true);
 
         long customersReadyForFreeHaircut = customerRepository
-                .countByHaircutCountGreaterThanEqual(settings.getHaircuts_for_free());
+                .countByHaircutCountGreaterThanEqual(settings.getHaircutsForFree());
 
         return DashboardMetrics.builder()
                 .totalCustomers(totalCustomers)

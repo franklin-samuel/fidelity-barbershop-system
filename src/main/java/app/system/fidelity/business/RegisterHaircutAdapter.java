@@ -46,7 +46,7 @@ public class RegisterHaircutAdapter implements RegisterHaircutPort {
                 .findFirst()
                 .orElseThrow(() -> new BusinessException("Configurações do sistema não encontradas"));
 
-        boolean isFree = customer.getHaircutCount() >= settings.getHaircuts_for_free();
+        boolean isFree = customer.getHaircutCount() >= settings.getHaircutsForFree();
 
         Haircut haircut = Haircut.builder()
                 .customer_id(customerId)

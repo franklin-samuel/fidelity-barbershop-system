@@ -27,7 +27,7 @@ public class UpdateSettingsAdapter implements UpdateSettingsPort {
             throw new BusinessException("Por favor, insira o número de cortes.");
         }
 
-        if (settingsForm.getHaircuts_for_free() == null || settingsForm.getHaircuts_for_free() <= 0) {
+        if (settingsForm.getHaircutsForFree() == null || settingsForm.getHaircutsForFree() <= 0) {
             throw new BusinessException("O número de cortes para ganhar um grátis deve ser maior que zero");
         }
 
@@ -35,7 +35,7 @@ public class UpdateSettingsAdapter implements UpdateSettingsPort {
                 .findFirst()
                 .orElseThrow(() -> new BusinessException("Configurações não encontradas"));
 
-        settings.setHaircuts_for_free(settingsForm.getHaircuts_for_free());
+        settings.setHaircutsForFree(settingsForm.getHaircutsForFree());
         settings.setUpdatedAt(LocalDateTime.now());
 
         return repository.save(settings);

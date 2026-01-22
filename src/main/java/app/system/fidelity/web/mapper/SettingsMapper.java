@@ -10,7 +10,7 @@ public class SettingsMapper {
     public SettingsResponse mapToResponse(final Settings settings) {
         return SettingsResponse.builder()
                 .id(settings.getId())
-                .haircutsForFree(settings.getHaircuts_for_free())
+                .haircutsForFree(settings.getHaircutsForFree())
                 .build();
     }
 }
