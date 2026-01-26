@@ -64,7 +64,7 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(responses));
     }
 
-    @DeleteMapping("/{id}")
+    @PostMapping("/{id}/delete")
     public ResponseEntity<ApiResponse<Void>> delete(
             @PathVariable final UUID id,
             @Valid @RequestBody final UserDeleteRequest request,
