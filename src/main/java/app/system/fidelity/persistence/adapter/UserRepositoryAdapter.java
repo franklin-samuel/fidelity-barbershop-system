@@ -53,4 +53,9 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
         return repository.existsByEmail(email);
     }
 
+    @Override
+    public void delete(final UUID id) {
+        repository.deleteById(id);
+    }
+
 }

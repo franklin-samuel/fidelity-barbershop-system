@@ -2,19 +2,24 @@ package app.system.fidelity.web.controller;
 
 import app.system.fidelity.core.Context;
 import app.system.fidelity.core.business.CreateUserPort;
+import app.system.fidelity.core.business.DeleteUserPort;
 import app.system.fidelity.core.persistence.UserRepositoryPort;
 import app.system.fidelity.domain.User;
+import app.system.fidelity.security.model.CustomUserDetails;
 import app.system.fidelity.web.commons.ApiResponse;
 import app.system.fidelity.web.mapper.UserMapper;
+import app.system.fidelity.web.model.request.UserDeleteRequest;
 import app.system.fidelity.web.model.request.UserRequest;
 import app.system.fidelity.web.model.response.UserResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/user")
@@ -23,6 +28,7 @@ public class UserController {
 
     private final UserRepositoryPort repository;
     private final CreateUserPort createUserPort;
+    private final DeleteUserPort deleteUserPort;
     private final UserMapper mapper;
 
     @PostMapping
@@ -56,5 +62,22 @@ public class UserController {
                 .toList();
 
         return ResponseEntity.ok(ApiResponse.success(responses));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> delete(
+            @PathVariable final UUID id,
+            @Valid @RequestBody final UserDeleteRequest request,
+            @AuthenticationPrincipal final CustomUserDetails userDetails
+    ) {
+
+        final Context context = new Context();
+        context.putProperty("userId", id);
+        context.putProperty("authenticatedUserId", userDetails.getUserId());
+        context.putProperty("emailConfirmation", request.emailConfirmation());
+
+        deleteUserPort.execute(context);
+
+        return ResponseEntity.ok(ApiResponse.success("Usuário deletado com sucesso"));
     }
 }
