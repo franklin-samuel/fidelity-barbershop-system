@@ -12,6 +12,4 @@ public interface UserRepositoryPort extends BaseRepositoryPort<User> {
 
     boolean existsByEmail(final String email);
 
-    void delete(final UUID id);
-
 }

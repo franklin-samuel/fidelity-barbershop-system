@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -48,7 +49,8 @@ public class DeleteUserAdapter implements DeleteUserPort {
             throw new BusinessException("O email de confirmação não corresponde ao email do usuário.");
         }
 
-        userRepositoryPort.delete(userId);
+        user.setDeletedAt(LocalDateTime.now());
+        userRepositoryPort.save(user);
 
         return null;
 

@@ -39,6 +39,7 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
         return of(repository.findAll())
                 .orElse(new ArrayList<>())
                 .stream()
+                .filter(user -> user.getDeletedAt() == null)
                 .map(mapper::map).toList();
     }
 
@@ -51,11 +52,6 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     @Override
     public boolean existsByEmail(final String email) {
         return repository.existsByEmail(email);
-    }
-
-    @Override
-    public void delete(final UUID id) {
-        repository.deleteById(id);
     }
 
 }
