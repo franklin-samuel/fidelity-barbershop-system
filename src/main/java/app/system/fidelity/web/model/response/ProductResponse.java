@@ -19,8 +19,6 @@ public record ProductResponse(
         @JsonProperty("commission_percentage")
         BigDecimal commissionPercentage,
 
-        Boolean active,
-
         @JsonProperty("created_at")
         LocalDateTime createdAt,
 

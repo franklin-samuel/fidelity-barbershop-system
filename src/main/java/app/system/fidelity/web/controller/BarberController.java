@@ -3,6 +3,7 @@ package app.system.fidelity.web.controller;
 import app.system.fidelity.core.Context;
 import app.system.fidelity.core.business.CreateBarberPort;
 import app.system.fidelity.core.business.DeleteBarberPort;
+import app.system.fidelity.core.persistence.UserRepositoryPort;
 import app.system.fidelity.domain.User;
 import app.system.fidelity.security.model.CustomUserDetails;
 import app.system.fidelity.web.commons.ApiResponse;
@@ -17,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -24,9 +26,20 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class BarberController {
 
+    private final UserRepositoryPort repository;
     private final CreateBarberPort createBarberPort;
     private final DeleteBarberPort deleteBarberPort;
     private final UserMapper mapper;
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<UserResponse>>> list() {
+        final List<UserResponse> responses = repository.findAllBarbers()
+                .stream()
+                .map(mapper::mapToResponse)
+                .toList();
+
+        return ResponseEntity.ok(ApiResponse.success(responses));
+    }
 
     @PostMapping
     public ResponseEntity<ApiResponse<UserResponse>> create(

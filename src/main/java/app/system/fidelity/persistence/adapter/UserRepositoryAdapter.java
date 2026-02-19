@@ -2,6 +2,7 @@ package app.system.fidelity.persistence.adapter;
 
 import app.system.fidelity.core.persistence.UserRepositoryPort;
 import app.system.fidelity.domain.User;
+import app.system.fidelity.domain.enums.Role;
 import app.system.fidelity.persistence.mapper.UserMapper;
 import app.system.fidelity.persistence.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +41,15 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
                 .orElse(new ArrayList<>())
                 .stream()
                 .filter(user -> user.getDeletedAt() == null)
+                .map(mapper::map).toList();
+    }
+
+    @Override
+    public List<User> findAllBarbers() {
+        return of(repository.findAll())
+                .orElse(new ArrayList<>())
+                .stream()
+                .filter(user -> user.getDeletedAt() == null && user.getRole() == Role.BARBER)
                 .map(mapper::map).toList();
     }
 
