@@ -37,6 +37,7 @@ public class AuthRestController {
                 .accessToken(jwt.getAccessToken())
                 .refreshToken(jwt.getRefreshToken())
                 .type(jwt.getType())
+                .role(jwt.getRole())
                 .build();
 
         return ResponseEntity.ok(ApiResponse.success(data));

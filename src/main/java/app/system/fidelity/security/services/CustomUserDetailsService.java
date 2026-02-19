@@ -3,12 +3,14 @@ package app.system.fidelity.security.services;
 import app.system.fidelity.core.persistence.UserRepositoryPort;
 import app.system.fidelity.security.model.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.List;
 
 import static java.util.Optional.ofNullable;
 
@@ -32,7 +34,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .isAccountNonLocked(true)
                 .isCredentialsNonExpired(true)
                 .isEnabled(true)
-                .authorities(Collections.emptyList())
+                .authorities(List.of(new SimpleGrantedAuthority(user.getRole().name())))
                 .build();
     }
 

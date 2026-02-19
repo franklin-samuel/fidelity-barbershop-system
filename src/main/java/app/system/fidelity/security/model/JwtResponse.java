@@ -12,7 +12,9 @@ public record JwtResponse(
         @JsonProperty(value = "refresh_token")
         String refreshToken,
 
-        String type
+        String type,
+
+        List<String> role
 ) {
 
 }

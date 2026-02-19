@@ -30,11 +30,13 @@ public class CreateTokenAdapter implements CreateTokenPort {
         final var user = userDetailsService.loadUserByUsername(username);
         final var accessToken = jwtUtil.generateAccessToken(user);
         final var refreshToken = jwtUtil.generateRefreshToken(user);
+        final var roles = jwtUtil.extractRoles(user);
 
         return Jwt.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .type("Bearer")
+                .role(roles)
                 .build();
     }
 }
