@@ -31,10 +31,10 @@ public class CustomerEntity extends AbstractEntity<UUID> {
     @Column(name = "phone_number")
     private String phoneNumber;
 
-    @Column(name = "haircut_count")
-    private Integer haircutCount;
+    @Column(name = "service_count")
+    private Integer serviceCount;
 
-    @Column(name = "free_haircuts_claimed")
-    private Integer freeHaircutsClaimed;
+    @Column(name = "discounts_claimed")
+    private Integer discountsClaimed;
 
 }

@@ -1,5 +1,6 @@
 package app.system.fidelity.persistence.model;
 
+import app.system.fidelity.domain.enums.Role;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,5 +30,8 @@ public class UserEntity extends AbstractEntity<UUID> {
 
     @Column(name = "password")
     private String password;
+
+    @Column(name = "role", nullable = false)
+    private String role;
 
 }

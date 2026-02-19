@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -13,5 +15,6 @@ public class Jwt extends AbstractDomain {
     private String accessToken;
     private String refreshToken;
     private String type;
+    private List<String> role;
 }
 

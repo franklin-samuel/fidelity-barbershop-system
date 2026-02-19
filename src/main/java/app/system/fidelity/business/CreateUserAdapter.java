@@ -36,8 +36,9 @@ public class CreateUserAdapter implements CreateUserPort {
                 .name(user.getName())
                 .email(user.getEmail())
                 .password(passwordEncoder.encode(user.getPassword()))
+                .role(user.getRole())
                 .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
+                .modifiedAt(LocalDateTime.now())
                 .build();
 
         User savedUser =  userRepositoryPort.save(newUser);

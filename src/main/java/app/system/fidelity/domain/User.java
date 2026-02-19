@@ -1,5 +1,6 @@
 package app.system.fidelity.domain;
 
+import app.system.fidelity.domain.enums.Role;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
@@ -14,5 +15,6 @@ public class User extends AbstractDomain {
     private String name;
     private String email;
     private String password;
+    private Role role;
 
 }
