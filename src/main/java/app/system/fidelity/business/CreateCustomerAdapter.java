@@ -24,7 +24,7 @@ public class CreateCustomerAdapter implements CreateCustomerPort {
         Customer customer = context.getData(Customer.class);
 
         if (customer == null) {
-            throw new BusinessException("Por favor, insira os dados do cliente.");
+            throw new BusinessException("Por favor, insira os dados do cliente!");
         }
 
         if (customer.getName() == null) {
