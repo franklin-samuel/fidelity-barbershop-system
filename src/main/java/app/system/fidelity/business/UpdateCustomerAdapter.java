@@ -34,7 +34,7 @@ public class UpdateCustomerAdapter implements UpdateCustomerPort {
         customer.setEmail(customerForm.getEmail().trim());
         customer.setPhoneNumber(customerForm.getPhoneNumber().trim());
 
-        customer.setUpdatedAt(LocalDateTime.now());
+        customer.setModifiedAt(LocalDateTime.now());
 
         return repository.save(customer);
     }
