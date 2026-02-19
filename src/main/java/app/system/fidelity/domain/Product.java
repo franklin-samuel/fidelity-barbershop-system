@@ -16,6 +16,5 @@ public class Product extends AbstractDomain {
     private String name;
     private BigDecimal price;
     private BigDecimal commissionPercentage;
-    private Boolean active;
 
 }

@@ -65,10 +65,6 @@ public class RegisterAppointmentAdapter implements RegisterAppointmentPort {
         final app.system.fidelity.domain.Service service = serviceRepository.get(form.getServiceId())
                 .orElseThrow(() -> new BusinessException("Serviço não encontrado."));
 
-        if (!service.getActive()) {
-            throw new BusinessException("O serviço '" + service.getName() + "' está inativo.");
-        }
-
         final Settings settings = settingsRepository.findAll().stream()
                 .findFirst()
                 .orElseThrow(() -> new BusinessException("Configurações do sistema não encontradas."));
@@ -133,9 +129,6 @@ public class RegisterAppointmentAdapter implements RegisterAppointmentPort {
         final Product product = productRepository.get(form.getProductId())
                 .orElseThrow(() -> new BusinessException("Produto não encontrado."));
 
-        if (!product.getActive()) {
-            throw new BusinessException("O produto '" + product.getName() + "' está inativo.");
-        }
 
         final BigDecimal commissionBase = product.getPrice().add(tip);
         final BigDecimal commissionAmount = commissionBase

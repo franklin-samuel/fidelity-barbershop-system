@@ -16,6 +16,5 @@ public class Service extends AbstractDomain {
     private String name;
     private BigDecimal price;
     private BigDecimal commissionPercentage;
-    private Boolean active;
 
 }
