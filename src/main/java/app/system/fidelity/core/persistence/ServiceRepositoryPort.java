@@ -8,8 +8,6 @@ import java.util.UUID;
 
 public interface ServiceRepositoryPort extends BaseRepositoryPort<Service> {
 
-    List<Service> findAllActive();
-
     void delete(UUID id);
 
 }

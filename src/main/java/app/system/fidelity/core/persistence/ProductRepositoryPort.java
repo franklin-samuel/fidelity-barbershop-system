@@ -8,8 +8,6 @@ import java.util.UUID;
 
 public interface ProductRepositoryPort extends BaseRepositoryPort<Product> {
 
-    List<Product> findAllActive();
-
     void delete(UUID id);
 
 }

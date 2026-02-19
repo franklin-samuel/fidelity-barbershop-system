@@ -43,11 +43,6 @@ public class ServiceRepositoryAdapter implements ServiceRepositoryPort {
     }
 
     @Override
-    public List<Service> findAllActive() {
-        return repository.findByActiveTrue().stream().map(mapper::map).toList();
-    }
-
-    @Override
     public void delete(final UUID id) {
         repository.deleteById(id);
     }

@@ -7,14 +7,14 @@ VALUES (
        )
     ON CONFLICT (id) DO NOTHING;
 
-
-INSERT INTO users (id, created_at, modified_at, email, name, password)
+INSERT INTO users (id, created_at, modified_at, email, name, password, role)
 VALUES (
-        'fc806316-cf9f-4fdb-9a17-11af3ce0b063',
-        CURRENT_TIMESTAMP,
-        CURRENT_TIMESTAMP,
-        'admin@email.com',
-        'admin',
-        '$2a$12$tvwttM44OmQHYW8.QJ8GZOOFUZZxbo6zcZZhsLqaopY7a4QsKoDim'
+           'fc806316-cf9f-4fdb-9a17-11af3ce0b063',
+           CURRENT_TIMESTAMP,
+           CURRENT_TIMESTAMP,
+           'admin@email.com',
+           'admin',
+           '$2a$12$tvwttM44OmQHYW8.QJ8GZOOFUZZxbo6zcZZhsLqaopY7a4QsKoDim',
+           'ADMIN'
        )
-ON CONFLICT (email) DO NOTHING;
+    ON CONFLICT (email) DO NOTHING;

@@ -43,11 +43,6 @@ public class ProductRepositoryAdapter implements ProductRepositoryPort {
     }
 
     @Override
-    public List<Product> findAllActive() {
-        return repository.findByActiveTrue().stream().map(mapper::map).toList();
-    }
-
-    @Override
     public void delete(final UUID id) {
         repository.deleteById(id);
     }
