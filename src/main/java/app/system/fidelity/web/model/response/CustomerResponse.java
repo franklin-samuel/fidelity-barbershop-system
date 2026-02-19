@@ -15,16 +15,15 @@ public record CustomerResponse(
         @JsonProperty("phone_number")
         String phoneNumber,
 
-        @JsonProperty("haircut_count")
-        Integer haircutCount,
+        @JsonProperty("service_count")
+        Integer serviceCount,
 
-        @JsonProperty("free_haircuts_claimed")
-        Integer freeHaircutsClaimed,
+        @JsonProperty("discounts_claimed")
+        Integer discountsClaimed,
 
         @JsonProperty("created_at")
         LocalDateTime createdAt,
 
-        @JsonProperty("updated_at")
-        LocalDateTime updatedAt
-) {
-}
+        @JsonProperty("modified_at")
+        LocalDateTime modifiedAt
+) {}

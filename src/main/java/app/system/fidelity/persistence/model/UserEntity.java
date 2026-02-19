@@ -1,6 +1,7 @@
 package app.system.fidelity.persistence.model;
 
 import app.system.fidelity.domain.enums.Role;
+import app.system.fidelity.persistence.converter.RoleConverter;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -31,7 +32,8 @@ public class UserEntity extends AbstractEntity<UUID> {
     @Column(name = "password")
     private String password;
 
+    @Convert(converter = RoleConverter.class)
     @Column(name = "role", nullable = false)
-    private String role;
+    private Role role;
 
 }

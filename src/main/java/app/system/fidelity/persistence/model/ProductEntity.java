@@ -27,5 +27,5 @@ public class ProductEntity extends AbstractEntity<UUID> {
 
     @Column(name = "commission_percentage", nullable = false, precision = 5, scale = 2)
     private BigDecimal commissionPercentage;
-    
+
 }

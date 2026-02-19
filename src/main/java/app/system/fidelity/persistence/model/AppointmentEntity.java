@@ -1,5 +1,9 @@
 package app.system.fidelity.persistence.model;
 
+import app.system.fidelity.domain.enums.AppointmentType;
+import app.system.fidelity.domain.enums.PaymentMethod;
+import app.system.fidelity.persistence.converter.AppointmentTypeConverter;
+import app.system.fidelity.persistence.converter.PaymentMethodConverter;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,8 +29,9 @@ public class AppointmentEntity extends AbstractEntity<UUID> {
     @Column(name = "customer_id")
     private UUID customerId;
 
+    @Convert(converter = AppointmentTypeConverter.class)
     @Column(name = "type", nullable = false)
-    private String type;
+    private AppointmentType type;
 
     @Column(name = "service_id")
     private UUID serviceId;
@@ -34,8 +39,9 @@ public class AppointmentEntity extends AbstractEntity<UUID> {
     @Column(name = "product_id")
     private UUID productId;
 
+    @Convert(converter = PaymentMethodConverter.class)
     @Column(name = "payment_method", nullable = false)
-    private String paymentMethod;
+    private PaymentMethod paymentMethod;
 
     @Column(name = "tip", precision = 10, scale = 2)
     private BigDecimal tip;

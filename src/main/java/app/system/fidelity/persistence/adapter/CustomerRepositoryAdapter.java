@@ -69,8 +69,8 @@ public class CustomerRepositoryAdapter implements CustomerRepositoryPort {
     }
 
     @Override
-    public long countByHaircutCountGreaterThanEqual(final int haircutCount) {
-        return repository.countByHaircutCountGreaterThanEqual(haircutCount);
+    public long countByServiceCountGreaterThanEqual(final int haircutCount) {
+        return repository.countByServiceCountGreaterThanEqual(haircutCount);
     }
 
 }
