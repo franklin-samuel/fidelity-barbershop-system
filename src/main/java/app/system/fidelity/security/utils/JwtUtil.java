@@ -1,5 +1,6 @@
 package app.system.fidelity.security.utils;
 
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -57,7 +58,11 @@ public class JwtUtil {
     }
 
     public boolean isTokenValid(final String token, final UserDetails userDetails) {
-        return extractUsername(token).equals(userDetails.getUsername()) && !isTokenExpired(token);
+        try {
+            return extractUsername(token).equals(userDetails.getUsername()) && !isTokenExpired(token);
+        } catch (JwtException e) {
+            return false;
+        }
     }
 
     private boolean isTokenExpired(final String token) {
