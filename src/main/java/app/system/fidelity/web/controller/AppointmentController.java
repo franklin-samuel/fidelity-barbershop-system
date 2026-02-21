@@ -1,10 +1,11 @@
 package app.system.fidelity.web.controller;
 
 import app.system.fidelity.core.Context;
+import app.system.fidelity.core.business.GetAppointmentDetailsPort;
 import app.system.fidelity.core.business.RegisterAppointmentPort;
 import app.system.fidelity.core.business.UpdateAppointmentPort;
-import app.system.fidelity.core.persistence.AppointmentRepositoryPort;
 import app.system.fidelity.domain.Appointment;
+import app.system.fidelity.domain.AppointmentDetail;
 import app.system.fidelity.domain.enums.AppointmentType;
 import app.system.fidelity.domain.enums.Role;
 import app.system.fidelity.security.model.CustomUserDetails;
@@ -12,6 +13,7 @@ import app.system.fidelity.web.commons.ApiResponse;
 import app.system.fidelity.web.mapper.AppointmentMapper;
 import app.system.fidelity.web.model.request.AppointmentRequest;
 import app.system.fidelity.web.model.request.AppointmentUpdateRequest;
+import app.system.fidelity.web.model.response.AppointmentDetailResponse;
 import app.system.fidelity.web.model.response.AppointmentResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,22 +32,25 @@ public class AppointmentController {
 
     private final RegisterAppointmentPort registerAppointmentPort;
     private final UpdateAppointmentPort updateAppointmentPort;
-    private final AppointmentRepositoryPort appointmentRepository;
+    private final GetAppointmentDetailsPort getAppointmentDetailsPort;
     private final AppointmentMapper mapper;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<AppointmentResponse>>> list(
+    public ResponseEntity<ApiResponse<List<AppointmentDetailResponse>>> list(
             @AuthenticationPrincipal final CustomUserDetails userDetails
     ) {
         final boolean isAdmin = userDetails.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals(Role.ADMIN.name()));
 
-        final List<Appointment> appointments = isAdmin
-                ? appointmentRepository.findAll()
-                : appointmentRepository.findByBarberId(userDetails.getUserId());
+        final Context context = new Context();
+        if (!isAdmin) {
+            context.putProperty("barberId", userDetails.getUserId());
+        }
 
-        final List<AppointmentResponse> responses = appointments.stream()
-                .map(mapper::mapToResponse)
+        final List<AppointmentDetail> appointmentDetails = getAppointmentDetailsPort.execute(context);
+
+        final List<AppointmentDetailResponse> responses = appointmentDetails.stream()
+                .map(mapper::mapToDetailResponse)
                 .toList();
 
         return ResponseEntity.ok(ApiResponse.success(responses));
