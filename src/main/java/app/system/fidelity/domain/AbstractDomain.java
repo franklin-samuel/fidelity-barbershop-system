@@ -16,7 +16,7 @@ public class AbstractDomain {
 
     private LocalDateTime createdAt;
 
-    private LocalDateTime updatedAt;
+    private LocalDateTime modifiedAt;
 
     private LocalDateTime deletedAt;
 

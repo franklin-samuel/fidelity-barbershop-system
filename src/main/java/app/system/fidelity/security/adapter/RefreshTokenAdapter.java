@@ -38,11 +38,13 @@ public class RefreshTokenAdapter implements RefreshTokenPort {
 
             final String newAccessToken = jwtUtil.generateAccessToken(userDetails);
             final String newRefreshToken = jwtUtil.generateRefreshToken(userDetails);
+            final var roles = jwtUtil.extractRoles(userDetails);
 
             return Jwt.builder()
                     .accessToken(newAccessToken)
                     .refreshToken(newRefreshToken)
                     .type("Bearer")
+                    .role(roles)
                     .build();
 
         } catch (final ExpiredJwtException e) {

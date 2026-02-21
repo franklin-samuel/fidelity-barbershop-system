@@ -36,7 +36,7 @@ public class UpdateSettingsAdapter implements UpdateSettingsPort {
                 .orElseThrow(() -> new BusinessException("Configurações não encontradas"));
 
         settings.setHaircutsForFree(settingsForm.getHaircutsForFree());
-        settings.setUpdatedAt(LocalDateTime.now());
+        settings.setModifiedAt(LocalDateTime.now());
 
         return repository.save(settings);
     }

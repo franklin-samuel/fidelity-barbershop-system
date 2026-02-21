@@ -16,6 +16,6 @@ public interface CustomerRepositoryPort extends BaseRepositoryPort<Customer> {
 
     long countAll();
 
-    long countByHaircutCountGreaterThanEqual(int haircutCount);
+    long countByServiceCountGreaterThanEqual(int haircutCount);
 
 }

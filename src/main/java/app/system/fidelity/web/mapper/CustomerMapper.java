@@ -13,11 +13,10 @@ public class CustomerMapper {
                 .name(customer.getName())
                 .email(customer.getEmail())
                 .phoneNumber(customer.getPhoneNumber())
-                .haircutCount(customer.getHaircutCount())
-                .freeHaircutsClaimed(customer.getFreeHaircutsClaimed())
+                .serviceCount(customer.getServiceCount())
+                .discountsClaimed(customer.getDiscountsClaimed())
                 .createdAt(customer.getCreatedAt())
-                .updatedAt(customer.getUpdatedAt())
+                .modifiedAt(customer.getModifiedAt())
                 .build();
-
     }
 }

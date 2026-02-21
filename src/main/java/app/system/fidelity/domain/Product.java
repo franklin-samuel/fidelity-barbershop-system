@@ -3,7 +3,7 @@ package app.system.fidelity.domain;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
-import java.util.UUID;
+import java.math.BigDecimal;
 
 @SuperBuilder
 @Getter
@@ -11,10 +11,10 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = false)
-public class Haircut extends AbstractDomain{
+public class Product extends AbstractDomain {
 
-    private UUID customerId;
-    private UUID registeredBy;
-    private Boolean isFree;
+    private String name;
+    private BigDecimal price;
+    private BigDecimal commissionPercentage;
 
 }

@@ -4,6 +4,7 @@ import app.system.fidelity.core.Context;
 import app.system.fidelity.core.business.CreateUserPort;
 import app.system.fidelity.core.persistence.UserRepositoryPort;
 import app.system.fidelity.domain.User;
+import app.system.fidelity.domain.enums.Role;
 import app.system.fidelity.domain.exceptions.BusinessException;
 import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -36,8 +37,9 @@ public class CreateUserAdapter implements CreateUserPort {
                 .name(user.getName())
                 .email(user.getEmail())
                 .password(passwordEncoder.encode(user.getPassword()))
+                .role(Role.ADMIN)
                 .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
+                .modifiedAt(LocalDateTime.now())
                 .build();
 
         User savedUser =  userRepositoryPort.save(newUser);

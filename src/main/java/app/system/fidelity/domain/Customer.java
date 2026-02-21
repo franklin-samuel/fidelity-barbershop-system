@@ -14,7 +14,7 @@ public class Customer extends AbstractDomain{
     private String name;
     private String email;
     private String phoneNumber;
-    private Integer haircutCount;
-    private Integer freeHaircutsClaimed;
+    private Integer serviceCount;
+    private Integer discountsClaimed;
 
 }
