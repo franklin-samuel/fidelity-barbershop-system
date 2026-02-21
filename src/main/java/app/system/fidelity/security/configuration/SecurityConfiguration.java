@@ -27,45 +27,46 @@ public class SecurityConfiguration {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/auth/**",
+                                "/auth/**",
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
-                                "/v3/api-docs",
+                                "/v3/api-docs/**",
                                 "/actuator/**"
                         ).permitAll()
 
                         // User
-                        .requestMatchers("/api/user/**").hasAuthority("ADMIN")
+                        .requestMatchers("/user/**").hasAuthority("ADMIN")
 
                         // Settings
-                        .requestMatchers("/api/settings/**").hasAuthority("ADMIN")
+                        .requestMatchers("/settings/**").hasAuthority("ADMIN")
 
                         // Appointment
-                        .requestMatchers(HttpMethod.GET, "/api/appointment/**").hasAnyAuthority("ADMIN", "BARBER")
-                        .requestMatchers(HttpMethod.POST, "/api/appointment/**").hasAnyAuthority("ADMIN", "BARBER")
-                        .requestMatchers(HttpMethod.PATCH, "/api/appointment/**").hasAnyAuthority("ADMIN", "BARBER")
+                        .requestMatchers(HttpMethod.GET, "/appointment/**").hasAnyAuthority("ADMIN", "BARBER")
+                        .requestMatchers(HttpMethod.POST, "/appointment/**").hasAnyAuthority("ADMIN", "BARBER")
+                        .requestMatchers(HttpMethod.PATCH, "/appointment/**").hasAnyAuthority("ADMIN", "BARBER")
 
                         // Barber
-                        .requestMatchers(HttpMethod.POST, "/api/barber/**").hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/barber/**").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/barber/**").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/barber/**").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/barber/**").hasAuthority("ADMIN")
 
                         // Service
-                        .requestMatchers(HttpMethod.GET, "/api/service/**").hasAnyAuthority("ADMIN", "BARBER")
-                        .requestMatchers(HttpMethod.POST, "/api/service/**").hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/api/service/**").hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/service/**").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/service/**").hasAnyAuthority("ADMIN", "BARBER")
+                        .requestMatchers(HttpMethod.POST, "/service/**").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/service/**").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/service/**").hasAuthority("ADMIN")
 
                         // Product
-                        .requestMatchers(HttpMethod.GET, "/api/product/**").hasAnyAuthority("ADMIN", "BARBER")
-                        .requestMatchers(HttpMethod.POST, "/api/product/**").hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/api/product/**").hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/product/**").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/product/**").hasAnyAuthority("ADMIN", "BARBER")
+                        .requestMatchers(HttpMethod.POST, "/product/**").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/product/**").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/product/**").hasAuthority("ADMIN")
 
                         // Customer
-                        .requestMatchers("/api/customer/**").hasAnyAuthority("ADMIN", "BARBER")
+                        .requestMatchers("/customer/**").hasAnyAuthority("ADMIN", "BARBER")
 
-                        // Appointment
-                        .requestMatchers(HttpMethod.POST, "/api/appointment/**").hasAnyAuthority("ADMIN", "BARBER")
+                        // Dashboard
+                        .requestMatchers("/dashboard/**").hasAuthority("ADMIN")
 
                         .anyRequest().authenticated()
                 )
