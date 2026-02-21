@@ -40,6 +40,11 @@ public class SecurityConfiguration {
                         // Settings
                         .requestMatchers("/api/settings/**").hasAuthority("ADMIN")
 
+                        // Appointment
+                        .requestMatchers(HttpMethod.GET, "/api/appointment/**").hasAnyAuthority("ADMIN", "BARBER")
+                        .requestMatchers(HttpMethod.POST, "/api/appointment/**").hasAnyAuthority("ADMIN", "BARBER")
+                        .requestMatchers(HttpMethod.PATCH, "/api/appointment/**").hasAnyAuthority("ADMIN", "BARBER")
+
                         // Barber
                         .requestMatchers(HttpMethod.POST, "/api/barber/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/barber/**").hasAuthority("ADMIN")

@@ -16,9 +16,6 @@ import java.util.UUID;
 @Setter
 public class AppointmentRequest {
 
-    @NotNull(message = "Tipo do atendimento é obrigatório")
-    private AppointmentType type;
-
     @NotNull(message = "Meio de pagamento é obrigatório")
     @JsonProperty("payment_method")
     private PaymentMethod paymentMethod;

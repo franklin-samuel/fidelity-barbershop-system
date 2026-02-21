@@ -3,8 +3,10 @@ package app.system.fidelity.web.controller;
 import app.system.fidelity.core.Context;
 import app.system.fidelity.core.business.RegisterAppointmentPort;
 import app.system.fidelity.core.business.UpdateAppointmentPort;
+import app.system.fidelity.core.persistence.AppointmentRepositoryPort;
 import app.system.fidelity.domain.Appointment;
 import app.system.fidelity.domain.enums.AppointmentType;
+import app.system.fidelity.domain.enums.Role;
 import app.system.fidelity.security.model.CustomUserDetails;
 import app.system.fidelity.web.commons.ApiResponse;
 import app.system.fidelity.web.mapper.AppointmentMapper;
@@ -18,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -27,7 +30,26 @@ public class AppointmentController {
 
     private final RegisterAppointmentPort registerAppointmentPort;
     private final UpdateAppointmentPort updateAppointmentPort;
+    private final AppointmentRepositoryPort appointmentRepository;
     private final AppointmentMapper mapper;
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<AppointmentResponse>>> list(
+            @AuthenticationPrincipal final CustomUserDetails userDetails
+    ) {
+        final boolean isAdmin = userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals(Role.ADMIN.name()));
+
+        final List<Appointment> appointments = isAdmin
+                ? appointmentRepository.findAll()
+                : appointmentRepository.findByBarberId(userDetails.getUserId());
+
+        final List<AppointmentResponse> responses = appointments.stream()
+                .map(mapper::mapToResponse)
+                .toList();
+
+        return ResponseEntity.ok(ApiResponse.success(responses));
+    }
 
     @PostMapping("/service")
     public ResponseEntity<ApiResponse<AppointmentResponse>> registerService(
