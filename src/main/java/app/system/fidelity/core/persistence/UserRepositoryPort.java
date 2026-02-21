@@ -15,4 +15,6 @@ public interface UserRepositoryPort extends BaseRepositoryPort<User> {
 
     List<User> findAllBarbers();
 
+    List<User> findAllAdmins();
+
 }

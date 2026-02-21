@@ -54,6 +54,15 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     }
 
     @Override
+    public List<User> findAllAdmins() {
+        return of(repository.findAll())
+                .orElse(new ArrayList<>())
+                .stream()
+                .filter(user -> user.getDeletedAt() == null && user.getRole() == Role.ADMIN)
+                .map(mapper::map).toList();
+    }
+
+    @Override
     public Optional<User> findByEmail(final String email) {
         return repository.findByEmail(email)
                 .map(mapper::map);
