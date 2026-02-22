@@ -37,11 +37,6 @@ public class CustomerRequest {
 
     private Gender gender;
 
-    private String neighborhood;
-
-    @JsonProperty("zip_code")
-    private String zipCode;
-
     @JsonProperty("referral_source")
     private ReferralSource referralSource;
 

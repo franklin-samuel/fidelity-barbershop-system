@@ -32,11 +32,6 @@ public record CustomerResponse(
 
         Gender gender,
 
-        String neighborhood,
-
-        @JsonProperty("zip_code")
-        String zipCode,
-
         @JsonProperty("referral_source")
         ReferralSource referralSource,
 

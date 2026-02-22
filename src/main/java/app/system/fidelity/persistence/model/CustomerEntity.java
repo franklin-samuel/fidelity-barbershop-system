@@ -54,12 +54,6 @@ public class CustomerEntity extends AbstractEntity<UUID> {
     @Column(name = "gender")
     private Gender gender;
 
-    @Column(name = "neighborhood", length = 100)
-    private String neighborhood;
-
-    @Column(name = "zip_code", length = 10)
-    private String zipCode;
-
     @Convert(converter = ReferralSourceConverter.class)
     @Column(name = "referral_source")
     private ReferralSource referralSource;

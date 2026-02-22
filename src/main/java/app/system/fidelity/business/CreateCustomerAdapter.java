@@ -45,7 +45,6 @@ public class CreateCustomerAdapter implements CreateCustomerPort {
 
                 .dateOfBirth(customer.getDateOfBirth())
                 .gender(customer.getGender())
-                .zipCode(customer.getZipCode())
 
                 .referralSource(customer.getReferralSource())
                 .preferredFrequency(customer.getPreferredFrequency())
