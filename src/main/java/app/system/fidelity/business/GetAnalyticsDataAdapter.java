@@ -7,6 +7,7 @@ import app.system.fidelity.core.persistence.CustomerRepositoryPort;
 import app.system.fidelity.domain.*;
 import app.system.fidelity.domain.AnalyticsData.*;
 import app.system.fidelity.domain.enums.Gender;
+import app.system.fidelity.domain.enums.PreferredFrequency;
 import app.system.fidelity.domain.enums.PreferredStyle;
 import app.system.fidelity.domain.enums.ReferralSource;
 import lombok.AllArgsConstructor;
@@ -59,7 +60,7 @@ public class GetAnalyticsDataAdapter implements GetAnalyticsDataPort {
 
         final List<ChannelData> acquisitionChannels = calculateAcquisitionChannels(allCustomers);
         final List<StyleData> popularStyles = calculatePopularStyles(allCustomers);
-        final Map<String, Long> preferredFrequency = calculatePreferredFrequency(allCustomers);
+        final Map<PreferredFrequency, Long> preferredFrequency = calculatePreferredFrequency(allCustomers);
 
         final List<TopCustomer> topCustomers = calculateTopCustomers(allCustomers);
         final Map<String, BigDecimal> avgTicketByAge = calculateAvgTicketByAge(allCustomers);
@@ -129,29 +130,45 @@ public class GetAnalyticsDataAdapter implements GetAnalyticsDataPort {
                 .collect(Collectors.toList());
     }
 
-    private Map<String, Long> calculateGenderDistribution(final List<Customer> customers) {
-        return customers.stream()
+    private Map<Gender, Long> calculateGenderDistribution(final List<Customer> customers) {
+        final Map<Gender, Long> distribution = new EnumMap<>(Gender.class);
+
+        for (Gender gender : Gender.values()) {
+            distribution.put(gender, 0L);
+        }
+
+        customers.stream()
                 .collect(Collectors.groupingBy(
-                        c -> c.getGender() != null ? c.getGender().name() : "NÃO_INFORMADO",
+                        c -> c.getGender() != null ? c.getGender() : Gender.NOT_INFORMED,
                         Collectors.counting()
-                ));
+                ))
+                .forEach(distribution::put);
+
+        return distribution;
     }
 
     private List<ChannelData> calculateAcquisitionChannels(final List<Customer> customers) {
         final long total = customers.size();
 
-        return customers.stream()
+        final Map<ReferralSource, Long> grouped = customers.stream()
                 .collect(Collectors.groupingBy(
-                        c -> c.getReferralSource() != null ? c.getReferralSource().name() : "NAO_INFORMADO",
+                        Customer::getReferralSource,
                         Collectors.counting()
-                ))
-                .entrySet().stream()
+                ));
+
+        return grouped.entrySet().stream()
                 .sorted((a, b) -> b.getValue().compareTo(a.getValue()))
-                .map(entry -> ChannelData.builder()
-                        .channel(ReferralSource.valueOf(entry.getKey()))
-                        .customerCount(entry.getValue())
-                        .percentage(total > 0 ? (entry.getValue() * 100.0) / total : 0.0)
-                        .build())
+                .map(entry -> {
+                    final ReferralSource channel = entry.getKey();
+                    final Long count = entry.getValue();
+                    final Double percentage = total > 0 ? (count * 100.0) / total : 0.0;
+
+                    return ChannelData.builder()
+                            .channel(channel)
+                            .customerCount(count)
+                            .percentage(percentage)
+                            .build();
+                })
                 .collect(Collectors.toList());
     }
 
@@ -161,27 +178,42 @@ public class GetAnalyticsDataAdapter implements GetAnalyticsDataPort {
                 .count();
 
         return customers.stream()
-                .filter(c -> c.getPreferredStyle() != null)
+                .filter(c -> c.getPreferredStyle() != null) // Filtra nulls
                 .collect(Collectors.groupingBy(
-                        c -> c.getPreferredStyle().name(),
+                        Customer::getPreferredStyle,
                         Collectors.counting()
                 ))
                 .entrySet().stream()
                 .sorted((a, b) -> b.getValue().compareTo(a.getValue()))
-                .map(entry -> StyleData.builder()
-                        .style(PreferredStyle.valueOf(entry.getKey()))
-                        .count(entry.getValue())
-                        .percentage(total > 0 ? (entry.getValue() * 100.0) / total : 0.0)
-                        .build())
+                .map(entry -> {
+                    final PreferredStyle style = entry.getKey();
+                    final Long count = entry.getValue();
+                    final Double percentage = total > 0 ? (count * 100.0) / total : 0.0;
+
+                    return StyleData.builder()
+                            .style(style)
+                            .count(count)
+                            .percentage(percentage)
+                            .build();
+                })
                 .collect(Collectors.toList());
     }
 
-    private Map<String, Long> calculatePreferredFrequency(final List<Customer> customers) {
-        return customers.stream()
+    private Map<PreferredFrequency, Long> calculatePreferredFrequency(final List<Customer> customers) {
+        final Map<PreferredFrequency, Long> distribution = new EnumMap<>(PreferredFrequency.class);
+
+        for (PreferredFrequency frequency : PreferredFrequency.values()) {
+            distribution.put(frequency, 0L);
+        }
+
+        customers.stream()
                 .collect(Collectors.groupingBy(
-                        c -> c.getPreferredFrequency() != null ? c.getPreferredFrequency().name() : "NAO_INFORMADO",
+                        c -> c.getPreferredFrequency() != null ? c.getPreferredFrequency() : PreferredFrequency.NOT_INFORMED,
                         Collectors.counting()
-                ));
+                ))
+                .forEach(distribution::put);
+
+        return distribution;
     }
 
     private List<TopCustomer> calculateTopCustomers(final List<Customer> customers) {
@@ -257,13 +289,13 @@ public class GetAnalyticsDataAdapter implements GetAnalyticsDataPort {
                 .filter(a -> a.getCustomerId() != null)
                 .collect(Collectors.groupingBy(Appointment::getCustomerId));
 
-        final Map<String, List<Customer>> customersByChannel = customers.stream()
+        final Map<ReferralSource, List<Customer>> customersByChannel = customers.stream()
                 .filter(c -> c.getReferralSource() != null)
-                .collect(Collectors.groupingBy(c -> c.getReferralSource().name()));
+                .collect(Collectors.groupingBy(Customer::getReferralSource));
 
         return customersByChannel.entrySet().stream()
                 .map(entry -> {
-                    final String channel = entry.getKey();
+                    final ReferralSource channel = entry.getKey();
                     final List<Customer> channelCustomers = entry.getValue();
 
                     BigDecimal totalRevenue = BigDecimal.ZERO;
@@ -286,7 +318,7 @@ public class GetAnalyticsDataAdapter implements GetAnalyticsDataPort {
                             : BigDecimal.ZERO;
 
                     return ChannelRevenue.builder()
-                            .channel(ReferralSource.valueOf(channel))
+                            .channel(channel)
                             .averageTicket(avgTicket)
                             .customerCount((long) channelCustomers.size())
                             .build();

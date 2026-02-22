@@ -1,6 +1,7 @@
 package app.system.fidelity.domain;
 
 import app.system.fidelity.domain.enums.Gender;
+import app.system.fidelity.domain.enums.PreferredFrequency;
 import app.system.fidelity.domain.enums.PreferredStyle;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,7 +29,7 @@ public class AnalyticsData {
 
     private List<ChannelData> acquisitionChannels;
     private List<StyleData> popularStyles;
-    private Map<PreferredStyle, Long> preferredFrequency;
+    private Map<PreferredFrequency, Long> preferredFrequency;
 
     private List<TopCustomer> topCustomers;
     private Map<String, BigDecimal> avgTicketByAge;
