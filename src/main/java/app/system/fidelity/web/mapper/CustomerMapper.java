@@ -15,6 +15,24 @@ public class CustomerMapper {
                 .phoneNumber(customer.getPhoneNumber())
                 .serviceCount(customer.getServiceCount())
                 .discountsClaimed(customer.getDiscountsClaimed())
+
+                .dateOfBirth(customer.getDateOfBirth())
+                .gender(customer.getGender())
+                .neighborhood(customer.getNeighborhood())
+                .zipCode(customer.getZipCode())
+
+                .referralSource(customer.getReferralSource())
+                .preferredFrequency(customer.getPreferredFrequency())
+                .preferredStyle(customer.getPreferredStyle())
+                .preferredBarberId(customer.getPreferredBarberId())
+
+                .instagramUsername(customer.getInstagramUsername())
+
+                .occupation(customer.getOccupation())
+
+                .lastVisitDate(customer.getLastVisitDate())
+                .totalSpent(customer.getTotalSpent())
+
                 .createdAt(customer.getCreatedAt())
                 .modifiedAt(customer.getModifiedAt())
                 .build();

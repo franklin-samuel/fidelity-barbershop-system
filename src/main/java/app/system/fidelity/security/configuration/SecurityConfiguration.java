@@ -69,6 +69,9 @@ public class SecurityConfiguration {
                         // Dashboard
                         .requestMatchers("/dashboard/**").hasAnyAuthority("ADMIN", "BARBER")
 
+                        // Analytics
+                        .requestMatchers("/analytics/**").hasAuthority("ADMIN")
+
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

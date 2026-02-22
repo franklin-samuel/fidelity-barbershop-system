@@ -12,6 +12,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -48,9 +49,17 @@ public class UpdateAppointmentAdapter implements UpdateAppointmentPort {
 
         if (appointment.getType() == AppointmentType.SERVICE) {
             customer.setServiceCount(customer.getServiceCount() + 1);
-            customer.setModifiedAt(LocalDateTime.now());
-            customerRepository.save(customer);
         }
+
+        customer.setLastVisitDate(appointment.getCreatedAt());
+
+        final BigDecimal currentTotalSpent = customer.getTotalSpent() != null
+                ? customer.getTotalSpent()
+                : BigDecimal.ZERO;
+        customer.setTotalSpent(currentTotalSpent.add(appointment.getTotalAmount()));
+
+        customer.setModifiedAt(LocalDateTime.now());
+        customerRepository.save(customer);
 
         appointment.setCustomerId(customer.getId());
         appointment.setModifiedAt(LocalDateTime.now());

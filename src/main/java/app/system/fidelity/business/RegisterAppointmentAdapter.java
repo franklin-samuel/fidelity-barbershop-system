@@ -89,6 +89,14 @@ public class RegisterAppointmentAdapter implements RegisterAppointmentPort {
                 customer.setServiceCount(customer.getServiceCount() + 1);
             }
 
+            customer.setLastVisitDate(LocalDateTime.now());
+
+            final BigDecimal totalAmount = service.getPrice().subtract(discountAmount);
+            final BigDecimal currentTotalSpent = customer.getTotalSpent() != null
+                    ? customer.getTotalSpent()
+                    : BigDecimal.ZERO;
+            customer.setTotalSpent(currentTotalSpent.add(totalAmount));
+
             customer.setModifiedAt(LocalDateTime.now());
             customerRepository.save(customer);
         }
@@ -135,6 +143,21 @@ public class RegisterAppointmentAdapter implements RegisterAppointmentPort {
         final Product product = productRepository.get(form.getProductId())
                 .orElseThrow(() -> new BusinessException("Produto não encontrado."));
 
+        if (form.getCustomerId() != null) {
+            final Customer customer = customerRepository.get(form.getCustomerId())
+                    .orElseThrow(() -> new BusinessException("Cliente não encontrado."));
+
+            customer.setLastVisitDate(LocalDateTime.now());
+
+            final BigDecimal currentTotalSpent = customer.getTotalSpent() != null
+                    ? customer.getTotalSpent()
+                    : BigDecimal.ZERO;
+            customer.setTotalSpent(currentTotalSpent.add(product.getPrice()));
+
+            customer.setModifiedAt(LocalDateTime.now());
+            customerRepository.save(customer);
+        }
+
         final BigDecimal commissionAmount = product.getPrice()
                 .multiply(product.getCommissionPercentage())
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
@@ -145,7 +168,7 @@ public class RegisterAppointmentAdapter implements RegisterAppointmentPort {
 
         return appointmentRepository.save(Appointment.builder()
                 .barberId(barberId)
-                .customerId(null)
+                .customerId(form.getCustomerId())
                 .type(AppointmentType.PRODUCT)
                 .productId(product.getId())
                 .paymentMethod(form.getPaymentMethod())

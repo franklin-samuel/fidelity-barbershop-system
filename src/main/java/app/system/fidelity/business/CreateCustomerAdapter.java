@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Service
@@ -25,13 +26,13 @@ public class CreateCustomerAdapter implements CreateCustomerPort {
         if (customer == null) {
             throw new BusinessException("Por favor, insira os dados do cliente!");
         }
-        if (customer.getName() == null) {
+        if (customer.getName() == null || customer.getName().isBlank()) {
             throw new BusinessException("Por favor, insira o nome do cliente.");
         }
-        if (customer.getEmail() == null) {
+        if (customer.getEmail() == null || customer.getEmail().isBlank()) {
             throw new BusinessException("Por favor, insira o email do cliente.");
         }
-        if (customer.getPhoneNumber() == null) {
+        if (customer.getPhoneNumber() == null || customer.getPhoneNumber().isBlank()) {
             throw new BusinessException("Por favor, insira o telefone do cliente.");
         }
 
@@ -41,6 +42,24 @@ public class CreateCustomerAdapter implements CreateCustomerPort {
                 .phoneNumber(customer.getPhoneNumber())
                 .serviceCount(0)
                 .discountsClaimed(0)
+
+                .dateOfBirth(customer.getDateOfBirth())
+                .gender(customer.getGender())
+                .neighborhood(customer.getNeighborhood())
+                .zipCode(customer.getZipCode())
+
+                .referralSource(customer.getReferralSource())
+                .preferredFrequency(customer.getPreferredFrequency())
+                .preferredStyle(customer.getPreferredStyle())
+                .preferredBarberId(customer.getPreferredBarberId())
+
+                .instagramUsername(customer.getInstagramUsername())
+
+                .occupation(customer.getOccupation())
+
+                .lastVisitDate(null)
+                .totalSpent(BigDecimal.ZERO)
+
                 .createdAt(LocalDateTime.now())
                 .modifiedAt(LocalDateTime.now())
                 .build());
