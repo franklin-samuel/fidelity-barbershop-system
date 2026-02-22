@@ -136,7 +136,7 @@ public class GetAnalyticsDataAdapter implements GetAnalyticsDataPort {
 
         final Map<ReferralSource, Long> grouped = customers.stream()
                 .collect(Collectors.groupingBy(
-                        Customer::getReferralSource,
+                        c -> c.getReferralSource() != null ? c.getReferralSource() : ReferralSource.NOT_INFORMED,
                         Collectors.counting()
                 ));
 
