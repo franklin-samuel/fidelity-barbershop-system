@@ -2,6 +2,7 @@ package app.system.fidelity.web.model.response;
 
 import app.system.fidelity.domain.enums.AppointmentType;
 import app.system.fidelity.domain.enums.PaymentMethod;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public record AppointmentDetailResponse(
 
         UUID id,
@@ -61,6 +63,13 @@ public record AppointmentDetailResponse(
 
         @JsonProperty("loyalty_discount_applied")
         Boolean loyaltyDiscountApplied,
+
+        // Novos campos - visibilidade controlada no mapper
+        @JsonProperty("barber_total")
+        BigDecimal barberTotal,
+
+        @JsonProperty("barbershop_revenue")
+        BigDecimal barbershopRevenue,
 
         @JsonProperty("created_at")
         LocalDateTime createdAt

@@ -94,10 +94,14 @@ public class RegisterAppointmentAdapter implements RegisterAppointmentPort {
         }
 
         final BigDecimal totalAmount = service.getPrice().subtract(discountAmount);
-        final BigDecimal commissionBase = totalAmount.add(tip);
-        final BigDecimal commissionAmount = commissionBase
+
+        final BigDecimal commissionAmount = totalAmount
                 .multiply(service.getCommissionPercentage())
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+
+        final BigDecimal barberTotal = commissionAmount.add(tip);
+
+        final BigDecimal barbershopRevenue = totalAmount.subtract(commissionAmount);
 
         return appointmentRepository.save(Appointment.builder()
                 .barberId(barberId)
@@ -112,6 +116,8 @@ public class RegisterAppointmentAdapter implements RegisterAppointmentPort {
                 .discountAmount(discountAmount)
                 .totalAmount(totalAmount)
                 .loyaltyDiscountApplied(loyaltyDiscountApplied)
+                .barberTotal(barberTotal)
+                .barbershopRevenue(barbershopRevenue)
                 .createdAt(LocalDateTime.now())
                 .modifiedAt(LocalDateTime.now())
                 .build());
@@ -129,11 +135,13 @@ public class RegisterAppointmentAdapter implements RegisterAppointmentPort {
         final Product product = productRepository.get(form.getProductId())
                 .orElseThrow(() -> new BusinessException("Produto não encontrado."));
 
-
-        final BigDecimal commissionBase = product.getPrice().add(tip);
-        final BigDecimal commissionAmount = commissionBase
+        final BigDecimal commissionAmount = product.getPrice()
                 .multiply(product.getCommissionPercentage())
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+
+        final BigDecimal barberTotal = commissionAmount.add(tip);
+
+        final BigDecimal barbershopRevenue = product.getPrice().subtract(commissionAmount);
 
         return appointmentRepository.save(Appointment.builder()
                 .barberId(barberId)
@@ -148,6 +156,8 @@ public class RegisterAppointmentAdapter implements RegisterAppointmentPort {
                 .discountAmount(BigDecimal.ZERO)
                 .totalAmount(product.getPrice())
                 .loyaltyDiscountApplied(false)
+                .barberTotal(barberTotal)
+                .barbershopRevenue(barbershopRevenue)
                 .createdAt(LocalDateTime.now())
                 .modifiedAt(LocalDateTime.now())
                 .build());

@@ -50,7 +50,7 @@ public class AppointmentController {
         final List<AppointmentDetail> appointmentDetails = getAppointmentDetailsPort.execute(context);
 
         final List<AppointmentDetailResponse> responses = appointmentDetails.stream()
-                .map(mapper::mapToDetailResponse)
+                .map(detail -> mapper.mapToDetailResponse(detail, isAdmin))
                 .toList();
 
         return ResponseEntity.ok(ApiResponse.success(responses));

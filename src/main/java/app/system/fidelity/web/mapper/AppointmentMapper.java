@@ -2,6 +2,7 @@ package app.system.fidelity.web.mapper;
 
 import app.system.fidelity.domain.Appointment;
 import app.system.fidelity.domain.AppointmentDetail;
+import app.system.fidelity.domain.enums.Role;
 import app.system.fidelity.web.model.response.AppointmentDetailResponse;
 import app.system.fidelity.web.model.response.AppointmentResponse;
 import org.springframework.stereotype.Component;
@@ -29,7 +30,7 @@ public class AppointmentMapper {
                 .build();
     }
 
-    public AppointmentDetailResponse mapToDetailResponse(final AppointmentDetail detail) {
+    public AppointmentDetailResponse mapToDetailResponse(final AppointmentDetail detail, final boolean isAdmin) {
         final Appointment appointment = detail.getAppointment();
 
         return AppointmentDetailResponse.builder()
@@ -51,6 +52,8 @@ public class AppointmentMapper {
                 .discountAmount(appointment.getDiscountAmount())
                 .totalAmount(appointment.getTotalAmount())
                 .loyaltyDiscountApplied(appointment.getLoyaltyDiscountApplied())
+                .barberTotal(appointment.getBarberTotal())
+                .barbershopRevenue(isAdmin ? appointment.getBarbershopRevenue() : null)
                 .createdAt(appointment.getCreatedAt())
                 .build();
     }

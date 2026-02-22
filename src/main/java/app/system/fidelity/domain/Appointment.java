@@ -35,4 +35,7 @@ public class Appointment extends AbstractDomain {
 
     private Boolean loyaltyDiscountApplied;
 
+    private BigDecimal barberTotal;
+    private BigDecimal barbershopRevenue;
+
 }

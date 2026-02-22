@@ -63,4 +63,10 @@ public class AppointmentEntity extends AbstractEntity<UUID> {
 
     @Column(name = "loyalty_discount_applied", nullable = false)
     private Boolean loyaltyDiscountApplied;
+
+    @Column(name = "barber_total", nullable = false, precision = 10, scale = 2)
+    private BigDecimal barberTotal;
+
+    @Column(name = "barbershop_revenue", nullable = false, precision = 10, scale = 2)
+    private BigDecimal barbershopRevenue;
 }

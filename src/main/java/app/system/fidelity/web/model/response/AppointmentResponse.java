@@ -50,6 +50,12 @@ public record AppointmentResponse(
         @JsonProperty("loyalty_discount_applied")
         Boolean loyaltyDiscountApplied,
 
+        @JsonProperty("barber_total")
+        BigDecimal barberTotal,
+
+        @JsonProperty("barbershop_revenue")
+        BigDecimal barbershopRevenue,
+
         @JsonProperty("created_at")
         LocalDateTime createdAt
 
