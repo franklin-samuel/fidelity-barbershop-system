@@ -55,7 +55,7 @@ public class UserController {
     @GetMapping
     public ResponseEntity<ApiResponse<List<UserResponse>>> list() {
 
-        final List<User> users = repository.findAllBarbers();
+        final List<User> users = repository.findAllAdmins();
 
         final List<UserResponse> responses = users.stream()
                 .map(mapper::mapToResponse)
