@@ -43,6 +43,14 @@ public class CustomerController {
                 .name(request.getName())
                 .email(request.getEmail())
                 .phoneNumber(request.getPhoneNumber())
+                .dateOfBirth(request.getDateOfBirth())
+                .gender(request.getGender())
+                .referralSource(request.getReferralSource())
+                .preferredFrequency(request.getPreferredFrequency())
+                .preferredStyle(request.getPreferredStyle())
+                .preferredBarberId(request.getPreferredBarberId())
+                .instagramUsername(request.getInstagramUsername())
+                .occupation(request.getOccupation())
                 .build();
 
         final Context context = new Context(customer);
