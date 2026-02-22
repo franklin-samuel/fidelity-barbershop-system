@@ -38,6 +38,7 @@ public class SecurityConfiguration {
                         .requestMatchers("/user/**").hasAuthority("ADMIN")
 
                         // Settings
+                        .requestMatchers(HttpMethod.GET, "/settings").hasAnyAuthority("ADMIN", "BARBER")
                         .requestMatchers("/settings/**").hasAuthority("ADMIN")
 
                         // Appointment
@@ -66,7 +67,7 @@ public class SecurityConfiguration {
                         .requestMatchers("/customer/**").hasAnyAuthority("ADMIN", "BARBER")
 
                         // Dashboard
-                        .requestMatchers("/dashboard/**").hasAuthority("ADMIN")
+                        .requestMatchers("/dashboard/**").hasAnyAuthority("ADMIN", "BARBER")
 
                         .anyRequest().authenticated()
                 )
