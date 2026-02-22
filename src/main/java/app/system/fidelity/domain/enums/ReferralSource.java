@@ -10,7 +10,8 @@ public enum ReferralSource {
     FACEBOOK("Facebook"),
     OUTDOOR("Outdoor/Placa"),
     WALKING("Passando na rua"),
-    OTHERS("Outros");
+    OTHERS("Outros"),
+    NOT_INFORMED("Não informado");
 
     private final String displayName;
 
