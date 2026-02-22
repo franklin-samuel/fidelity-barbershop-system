@@ -18,7 +18,6 @@ public class CustomerMapper {
 
                 .dateOfBirth(customer.getDateOfBirth())
                 .gender(customer.getGender())
-                .neighborhood(customer.getNeighborhood())
                 .zipCode(customer.getZipCode())
 
                 .referralSource(customer.getReferralSource())
