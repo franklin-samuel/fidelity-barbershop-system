@@ -28,7 +28,6 @@ public class Customer extends AbstractDomain {
 
     private LocalDate dateOfBirth;
     private Gender gender;
-    private String neighborhood;
     private String zipCode;
 
     private ReferralSource referralSource;

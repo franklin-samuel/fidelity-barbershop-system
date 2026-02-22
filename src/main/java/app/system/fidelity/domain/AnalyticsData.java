@@ -24,7 +24,6 @@ public class AnalyticsData {
     private Double retentionRate;
 
     private Map<String, Long> customersByAgeGroup;
-    private List<NeighborhoodData> topNeighborhoods;
     private Map<Gender, Long> customerByGender;
 
     private List<ChannelData> acquisitionChannels;

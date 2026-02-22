@@ -55,7 +55,6 @@ public class GetAnalyticsDataAdapter implements GetAnalyticsDataPort {
                 : 0.0;
 
         final Map<String, Long> customersByAgeGroup = calculateAgeGroups(allCustomers);
-        final List<NeighborhoodData> topNeighborhoods = calculateTopNeighborhoods(allCustomers);
         final Map<Gender, Long> customersByGender = calculateGenderDistribution(allCustomers);
 
         final List<ChannelData> acquisitionChannels = calculateAcquisitionChannels(allCustomers);
@@ -72,7 +71,6 @@ public class GetAnalyticsDataAdapter implements GetAnalyticsDataPort {
                 .totalRevenue(totalRevenue)
                 .retentionRate(Math.round(retentionRate * 100.0) / 100.0)
                 .customersByAgeGroup(customersByAgeGroup)
-                .topNeighborhoods(topNeighborhoods)
                 .customerByGender(customersByGender)
                 .acquisitionChannels(acquisitionChannels)
                 .popularStyles(popularStyles)
@@ -114,20 +112,6 @@ public class GetAnalyticsDataAdapter implements GetAnalyticsDataPort {
         }
 
         return ageGroups;
-    }
-
-    private List<NeighborhoodData> calculateTopNeighborhoods(final List<Customer> customers) {
-        return customers.stream()
-                .filter(c -> c.getNeighborhood() != null && !c.getNeighborhood().isBlank())
-                .collect(Collectors.groupingBy(Customer::getNeighborhood, Collectors.counting()))
-                .entrySet().stream()
-                .sorted((a, b) -> b.getValue().compareTo(a.getValue()))
-                .limit(5)
-                .map(entry -> NeighborhoodData.builder()
-                        .neighborhood(entry.getKey())
-                        .customerCount(entry.getValue())
-                        .build())
-                .collect(Collectors.toList());
     }
 
     private Map<Gender, Long> calculateGenderDistribution(final List<Customer> customers) {
@@ -178,7 +162,7 @@ public class GetAnalyticsDataAdapter implements GetAnalyticsDataPort {
                 .count();
 
         return customers.stream()
-                .filter(c -> c.getPreferredStyle() != null) // Filtra nulls
+                .filter(c -> c.getPreferredStyle() != null)
                 .collect(Collectors.groupingBy(
                         Customer::getPreferredStyle,
                         Collectors.counting()

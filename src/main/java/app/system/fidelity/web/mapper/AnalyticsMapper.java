@@ -22,15 +22,6 @@ public class AnalyticsMapper {
 
                 .customersByAgeGroup(data.getCustomersByAgeGroup())
 
-                .topNeighborhoods(data.getTopNeighborhoods() != null
-                        ? data.getTopNeighborhoods().stream()
-                        .map(n -> AnalyticsDataResponse.NeighborhoodDataResponse.builder()
-                                .neighborhood(n.getNeighborhood())
-                                .customerCount(n.getCustomerCount())
-                                .build())
-                        .collect(Collectors.toList())
-                        : null)
-
                 .customersByGender(convertGenderMapToString(data.getCustomerByGender()))
 
                 .acquisitionChannels(data.getAcquisitionChannels() != null

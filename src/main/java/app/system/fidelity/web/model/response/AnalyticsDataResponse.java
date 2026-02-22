@@ -25,9 +25,6 @@ public record AnalyticsDataResponse(
         @JsonProperty("customers_by_age_group")
         Map<String, Long> customersByAgeGroup,
 
-        @JsonProperty("top_neighborhoods")
-        List<NeighborhoodDataResponse> topNeighborhoods,
-
         @JsonProperty("customers_by_gender")
         Map<String, Long> customersByGender,
 
@@ -50,13 +47,6 @@ public record AnalyticsDataResponse(
         List<ChannelRevenueResponse> channelVsRevenue
 
 ) {
-    @Builder
-    public record NeighborhoodDataResponse(
-            String neighborhood,
-
-            @JsonProperty("customer_count")
-            Long customerCount
-    ) {}
 
     @Builder
     public record ChannelDataResponse(
