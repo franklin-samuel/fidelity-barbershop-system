@@ -6,7 +6,6 @@ import app.system.fidelity.core.persistence.AppointmentRepositoryPort;
 import app.system.fidelity.domain.Appointment;
 import app.system.fidelity.domain.DailyRevenue;
 import app.system.fidelity.domain.DashboardMetrics;
-import app.system.fidelity.domain.enums.Role;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +21,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional
+@Transactional(readOnly = true)
 @AllArgsConstructor
 public class GetBarberDashboardMetricsAdapter implements GetBarberDashboardMetricsPort {
 
@@ -42,24 +41,24 @@ public class GetBarberDashboardMetricsAdapter implements GetBarberDashboardMetri
         final List<Appointment> barberAppointments = appointmentRepository.findByBarberId(userId);
 
         final BigDecimal todayEarnings = barberAppointments.stream()
-                .filter(a -> a.getCreatedAt().isAfter(startOfToday))
+                .filter(a -> !a.getCreatedAt().isBefore(startOfToday))
                 .map(Appointment::getBarberTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         final BigDecimal weekEarnings = barberAppointments.stream()
-                .filter(a -> a.getCreatedAt().isAfter(startOfWeek))
+                .filter(a -> !a.getCreatedAt().isBefore(startOfWeek))
                 .map(Appointment::getBarberTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         final BigDecimal monthEarnings = barberAppointments.stream()
-                .filter(a -> a.getCreatedAt().isAfter(startOfMonth))
+                .filter(a -> !a.getCreatedAt().isBefore(startOfMonth))
                 .map(Appointment::getBarberTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         final List<DailyRevenue> last30DaysEarnings = calculateDailyEarnings(barberAppointments, thirtyDaysAgo, now);
 
         final List<Appointment> monthAppointments = barberAppointments.stream()
-                .filter(a -> a.getCreatedAt().isAfter(startOfMonth))
+                .filter(a -> !a.getCreatedAt().isBefore(startOfMonth))
                 .collect(Collectors.toList());
 
         final Integer appointmentsCount = monthAppointments.size();
@@ -80,8 +79,6 @@ public class GetBarberDashboardMetricsAdapter implements GetBarberDashboardMetri
                 .map(Appointment::getCommissionAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        final BigDecimal monthTips = monthTotalTips;
-
         return DashboardMetrics.builder()
                 .todayEarnings(todayEarnings)
                 .weekEarnings(weekEarnings)
@@ -91,9 +88,8 @@ public class GetBarberDashboardMetricsAdapter implements GetBarberDashboardMetri
                 .monthAverageTicket(monthAverageTicket)
                 .monthTotalTips(monthTotalTips)
                 .monthCommission(monthCommission)
-                .monthTips(monthTips)
+                .monthTips(monthTotalTips)
                 .build();
-
     }
 
     private List<DailyRevenue> calculateDailyEarnings(
@@ -102,7 +98,7 @@ public class GetBarberDashboardMetricsAdapter implements GetBarberDashboardMetri
             final LocalDateTime endDate
     ) {
         final Map<LocalDate, BigDecimal> dailyMap = appointments.stream()
-                .filter(a -> a.getCreatedAt().isAfter(startDate) && a.getCreatedAt().isBefore(endDate))
+                .filter(a -> !a.getCreatedAt().isBefore(startDate) && !a.getCreatedAt().isAfter(endDate))
                 .collect(Collectors.groupingBy(
                         a -> a.getCreatedAt().toLocalDate(),
                         Collectors.reducing(BigDecimal.ZERO, Appointment::getBarberTotal, BigDecimal::add)
@@ -122,5 +118,4 @@ public class GetBarberDashboardMetricsAdapter implements GetBarberDashboardMetri
 
         return result;
     }
-
 }
