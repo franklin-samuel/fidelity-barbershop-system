@@ -19,17 +19,14 @@ import java.time.LocalDateTime;
 public abstract class AbstractEntity<K> {
 
     @CreationTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at", nullable = false, columnDefinition = "TIMESTAMP")
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "modified_at", nullable = false)
+    @Column(name = "modified_at", nullable = false, columnDefinition = "TIMESTAMP")
     private LocalDateTime modifiedAt;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "deleted_at")
+    @Column(name = "deleted_at", columnDefinition = "TIMESTAMP")
     private LocalDateTime deletedAt;
 
 }
