@@ -1,5 +1,6 @@
 package app.system.fidelity.persistence.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.Column;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
@@ -19,11 +20,13 @@ import java.time.LocalDateTime;
 public abstract class AbstractEntity<K> {
 
     @CreationTimestamp
-    @Column(name = "created_at", nullable = false, columnDefinition = "TIMESTAMP")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "America/Fortaleza")
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @Column(name = "modified_at", nullable = false, columnDefinition = "TIMESTAMP")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "America/Fortaleza")
+    @Column(name = "modified_at", nullable = false)
     private LocalDateTime modifiedAt;
 
     @Column(name = "deleted_at", columnDefinition = "TIMESTAMP")
