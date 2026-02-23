@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface AppointmentRepository extends JpaRepository<AppointmentEntity, UUID> {
-    List<AppointmentEntity> findByBarberId(UUID barberId);
+    List<AppointmentEntity> findAllByOrderByCreatedAtDesc();
+    List<AppointmentEntity> findByBarberIdOrderByCreatedAtDesc(UUID barberId);
     long countByLoyaltyDiscountApplied(boolean loyaltyDiscountApplied);
 }

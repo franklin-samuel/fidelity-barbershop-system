@@ -37,14 +37,14 @@ public class AppointmentRepositoryAdapter implements AppointmentRepositoryPort {
 
     @Override
     public List<Appointment> findAll() {
-        return of(repository.findAll())
+        return of(repository.findAllByOrderByCreatedAtDesc())
                 .orElse(new ArrayList<>())
                 .stream().map(mapper::map).toList();
     }
 
     @Override
     public List<Appointment> findByBarberId(final UUID barberId) {
-        return repository.findByBarberId(barberId).stream().map(mapper::map).toList();
+        return repository.findByBarberIdOrderByCreatedAtDesc(barberId).stream().map(mapper::map).toList();
     }
 
     @Override
