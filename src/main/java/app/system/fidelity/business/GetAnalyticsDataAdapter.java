@@ -58,20 +58,23 @@ public class GetAnalyticsDataAdapter implements GetAnalyticsDataPort {
         final List<ChannelData> acquisitionChannels = buildAcquisitionChannels(referralCounts, totalCustomers);
         final List<StyleData> popularStyles = buildPopularStyles(styleCounts);
 
-        // --- Top customers direto do banco (ORDER BY + LIMIT) ---
-        final List<TopCustomer> topCustomers = customerRepository.findTopCustomersByTotalSpent(10).stream()
-                .map(c -> TopCustomer.builder()
-                        .name(c.getName())
-                        .totalSpent(c.getTotalSpent())
-                        .visitsCount(c.getServiceCount())
-                        .build())
-                .collect(Collectors.toList());
-
         final List<Customer> allCustomers = customerRepository.findAll();
 
         final Map<UUID, CustomerAppointmentSummary> appointmentSummaryByCustomer =
                 appointmentRepository.findRevenueGroupByCustomer().stream()
                         .collect(Collectors.toMap(CustomerAppointmentSummary::customerId, s -> s));
+
+        final List<TopCustomer> topCustomers = customerRepository.findTopCustomersByTotalSpent(10).stream()
+                .map(c -> {
+                    final CustomerAppointmentSummary summary = appointmentSummaryByCustomer.get(c.getId());
+                    final int visits = summary != null ? summary.appointmentCount().intValue() : 0;
+                    return TopCustomer.builder()
+                            .name(c.getName())
+                            .totalSpent(c.getTotalSpent())
+                            .visitsCount(visits)
+                            .build();
+                })
+                .collect(Collectors.toList());
 
         final Map<String, Long> customersByAgeGroup = calculateAgeGroups(allCustomers);
         final Map<String, BigDecimal> avgTicketByAge = calculateAvgTicketByAge(allCustomers, appointmentSummaryByCustomer);
