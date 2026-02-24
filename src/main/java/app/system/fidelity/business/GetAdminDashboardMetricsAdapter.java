@@ -33,42 +33,49 @@ public class GetAdminDashboardMetricsAdapter implements GetAdminDashboardMetrics
 
         final LocalDateTime now = LocalDateTime.now();
         final LocalDateTime startOfToday = now.toLocalDate().atStartOfDay();
+        final LocalDateTime endOfToday = now.toLocalDate().atTime(23, 59, 59);
         final LocalDateTime startOfWeek = now.minusDays(now.getDayOfWeek().getValue() - 1).toLocalDate().atStartOfDay();
         final LocalDateTime startOfMonth = now.withDayOfMonth(1).toLocalDate().atStartOfDay();
         final LocalDateTime startOfPreviousMonth = startOfMonth.minusMonths(1);
-        final LocalDateTime endOfPreviousMonth = startOfMonth;
+        final LocalDateTime endOfPreviousMonth = startOfMonth.minusSeconds(1);
         final LocalDateTime thirtyDaysAgo = now.minusDays(30).toLocalDate().atStartOfDay();
 
-        final List<Appointment> allAppointments = appointmentRepository.findAll();
+        final List<Appointment> last30DaysAppointments = appointmentRepository
+                .findByCreatedAtBetween(thirtyDaysAgo, endOfToday);
 
-        final BigDecimal todayRevenue = allAppointments.stream()
+        final BigDecimal todayRevenue = last30DaysAppointments.stream()
                 .filter(a -> !a.getCreatedAt().isBefore(startOfToday))
                 .map(Appointment::getBarbershopRevenue)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        final BigDecimal weekRevenue = allAppointments.stream()
+        final BigDecimal weekRevenue = last30DaysAppointments.stream()
                 .filter(a -> !a.getCreatedAt().isBefore(startOfWeek))
                 .map(Appointment::getBarbershopRevenue)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        final BigDecimal monthRevenue = allAppointments.stream()
+        final BigDecimal monthRevenue = last30DaysAppointments.stream()
                 .filter(a -> !a.getCreatedAt().isBefore(startOfMonth))
                 .map(Appointment::getBarbershopRevenue)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        final List<DailyRevenue> last30DaysRevenue = calculateDailyRevenue(allAppointments, thirtyDaysAgo, now);
+        final List<DailyRevenue> last30DaysRevenue = calculateDailyRevenue(last30DaysAppointments, thirtyDaysAgo, endOfToday);
 
-        final BigDecimal previousMonthRevenue = allAppointments.stream()
-                .filter(a -> !a.getCreatedAt().isBefore(startOfPreviousMonth) && a.getCreatedAt().isBefore(endOfPreviousMonth))
+        final List<Appointment> previousMonthAppointments = appointmentRepository
+                .findByCreatedAtBetween(startOfPreviousMonth, endOfPreviousMonth);
+
+        final BigDecimal previousMonthRevenue = previousMonthAppointments.stream()
                 .map(Appointment::getBarbershopRevenue)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         final BigDecimal monthlyGrowthPercentage = calculateGrowthPercentage(previousMonthRevenue, monthRevenue);
 
-        final List<BarberPerformance> topBarbers = calculateTopBarbers(allAppointments, startOfMonth);
-
-        final Map<Boolean, BigDecimal> revenueByType = allAppointments.stream()
+        final List<Appointment> currentMonthAppointments = last30DaysAppointments.stream()
                 .filter(a -> !a.getCreatedAt().isBefore(startOfMonth))
+                .toList();
+
+        final List<BarberPerformance> topBarbers = calculateTopBarbers(currentMonthAppointments);
+
+        final Map<Boolean, BigDecimal> revenueByType = currentMonthAppointments.stream()
                 .collect(Collectors.groupingBy(
                         a -> a.getServiceId() != null,
                         Collectors.reducing(BigDecimal.ZERO, Appointment::getBarbershopRevenue, BigDecimal::add)
@@ -91,23 +98,16 @@ public class GetAdminDashboardMetricsAdapter implements GetAdminDashboardMetrics
                 .build();
     }
 
-    private List<BarberPerformance> calculateTopBarbers(
-            final List<Appointment> appointments,
-            final LocalDateTime startOfMonth
-    ) {
+    private List<BarberPerformance> calculateTopBarbers(final List<Appointment> appointments) {
         final Map<UUID, List<Appointment>> appointmentsByBarber = appointments.stream()
-                .filter(a -> !a.getCreatedAt().isBefore(startOfMonth))
                 .filter(a -> a.getBarberId() != null)
                 .collect(Collectors.groupingBy(Appointment::getBarberId));
 
         final Set<UUID> barberIds = appointmentsByBarber.keySet();
-        final Map<UUID, String> barberNames = barberIds.stream()
-                .collect(Collectors.toMap(
-                        id -> id,
-                        id -> userRepositoryPort.get(id)
-                                .map(User::getName)
-                                .orElse("Barbeiro Desconhecido")
-                ));
+
+        final Map<UUID, String> barberNames = userRepositoryPort.findAllBarbers().stream()
+                .filter(user -> barberIds.contains(user.getId()))
+                .collect(Collectors.toMap(User::getId, User::getName));
 
         return appointmentsByBarber.entrySet().stream()
                 .map(entry -> {
@@ -118,7 +118,7 @@ public class GetAdminDashboardMetricsAdapter implements GetAdminDashboardMetrics
                             .map(Appointment::getBarbershopRevenue)
                             .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-                    final String barberName = barberNames.get(barberId);
+                    final String barberName = barberNames.getOrDefault(barberId, "Barbeiro Desconhecido");
 
                     return BarberPerformance.builder()
                             .barberName(barberName)
@@ -137,7 +137,6 @@ public class GetAdminDashboardMetricsAdapter implements GetAdminDashboardMetrics
             final LocalDateTime endDate
     ) {
         final Map<LocalDate, BigDecimal> dailyMap = appointments.stream()
-                .filter(a -> !a.getCreatedAt().isBefore(startDate) && !a.getCreatedAt().isAfter(endDate))
                 .collect(Collectors.groupingBy(
                         a -> a.getCreatedAt().toLocalDate(),
                         Collectors.reducing(BigDecimal.ZERO, Appointment::getBarbershopRevenue, BigDecimal::add)

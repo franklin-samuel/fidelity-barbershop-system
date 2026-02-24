@@ -8,6 +8,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -45,6 +46,22 @@ public class AppointmentRepositoryAdapter implements AppointmentRepositoryPort {
     @Override
     public List<Appointment> findByBarberId(final UUID barberId) {
         return repository.findByBarberIdOrderByCreatedAtDesc(barberId).stream().map(mapper::map).toList();
+    }
+
+    @Override
+    public List<Appointment> findByCreatedAtBetween(final LocalDateTime start, final LocalDateTime end) {
+        return repository.findByCreatedAtBetweenOrderByCreatedAtDesc(start, end)
+                .stream()
+                .map(mapper::map)
+                .toList();
+    }
+
+    @Override
+    public List<Appointment> findByBarberIdAndCreatedAtBetween(final UUID barberId, final LocalDateTime start, final LocalDateTime end) {
+        return repository.findByBarberIdAndCreatedAtBetweenOrderByCreatedAtDesc(barberId, start, end)
+                .stream()
+                .map(mapper::map)
+                .toList();
     }
 
     @Override
