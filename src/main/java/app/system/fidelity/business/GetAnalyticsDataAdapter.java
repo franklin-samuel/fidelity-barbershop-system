@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -35,7 +36,6 @@ public class GetAnalyticsDataAdapter implements GetAnalyticsDataPort {
     @Override
     public AnalyticsData execute(final Context context) {
 
-        // --- Scalars direto do banco ---
         final long totalCustomers = customerRepository.countAll();
         final BigDecimal totalRevenue = appointmentRepository.sumTotalAmount();
 
@@ -45,9 +45,22 @@ public class GetAnalyticsDataAdapter implements GetAnalyticsDataPort {
                 ? revenueWithCustomer.divide(BigDecimal.valueOf(countWithCustomer), 2, RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
 
-        final long returningCustomers = customerRepository.countByServiceCountGreaterThanEqual(2);
-        final Double retentionRate = totalCustomers > 0
-                ? Math.round((returningCustomers * 100.0 / totalCustomers) * 100.0) / 100.0
+        final LocalDateTime now = LocalDateTime.now();
+        final LocalDateTime startOfCurrentMonth = now.withDayOfMonth(1).toLocalDate().atStartOfDay();
+        final LocalDateTime endOfCurrentMonth = now.toLocalDate().atTime(23, 59, 59);
+        final LocalDateTime startOfPreviousMonth = startOfCurrentMonth.minusMonths(1);
+        final LocalDateTime endOfPreviousMonth = startOfCurrentMonth.minusSeconds(1);
+
+        final long previousMonthCustomers = appointmentRepository
+                .countDistinctCustomersBetween(startOfPreviousMonth, endOfPreviousMonth);
+
+        final long retainedCustomers = appointmentRepository.countRetainedCustomers(
+                startOfPreviousMonth, endOfPreviousMonth,
+                startOfCurrentMonth, endOfCurrentMonth
+        );
+
+        final Double retentionRate = previousMonthCustomers > 0
+                ? Math.round((retainedCustomers * 100.0 / previousMonthCustomers) * 100.0) / 100.0
                 : 0.0;
 
         final Map<Gender, Long> customersByGender = customerRepository.countGroupByGender();

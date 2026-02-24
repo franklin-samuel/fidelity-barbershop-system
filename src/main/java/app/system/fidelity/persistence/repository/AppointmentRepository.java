@@ -68,6 +68,29 @@ public interface AppointmentRepository extends JpaRepository<AppointmentEntity, 
             "GROUP BY a.customerId")
     List<Object[]> findRevenueGroupByCustomer();
 
+    @Query("SELECT COUNT(DISTINCT a.customerId) FROM AppointmentEntity a " +
+            "WHERE a.customerId IS NOT NULL " +
+            "AND a.createdAt BETWEEN :start AND :end")
+    long countDistinctCustomersBetween(
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end
+    );
+
+    @Query("SELECT COUNT(DISTINCT a.customerId) FROM AppointmentEntity a " +
+            "WHERE a.customerId IS NOT NULL " +
+            "AND a.createdAt BETWEEN :currentStart AND :currentEnd " +
+            "AND a.customerId IN (" +
+            "  SELECT DISTINCT a2.customerId FROM AppointmentEntity a2 " +
+            "  WHERE a2.customerId IS NOT NULL " +
+            "  AND a2.createdAt BETWEEN :previousStart AND :previousEnd" +
+            ")")
+    long countRetainedCustomers(
+            @Param("previousStart") LocalDateTime previousStart,
+            @Param("previousEnd") LocalDateTime previousEnd,
+            @Param("currentStart") LocalDateTime currentStart,
+            @Param("currentEnd") LocalDateTime currentEnd
+    );
+
     @Query("SELECT COALESCE(SUM(a.barberTotal), 0) FROM AppointmentEntity a " +
             "WHERE a.barberId = :barberId AND a.createdAt BETWEEN :start AND :end")
     BigDecimal sumBarberTotalByBarberIdBetween(

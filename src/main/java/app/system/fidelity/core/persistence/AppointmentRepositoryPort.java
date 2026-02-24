@@ -38,6 +38,15 @@ public interface AppointmentRepositoryPort extends BaseRepositoryPort<Appointmen
 
     List<CustomerAppointmentSummary> findRevenueGroupByCustomer();
 
+    long countDistinctCustomersBetween(final LocalDateTime start, final LocalDateTime end);
+
+    long countRetainedCustomers(
+            final LocalDateTime previousStart,
+            final LocalDateTime previousEnd,
+            final LocalDateTime currentStart,
+            final LocalDateTime currentEnd
+    );
+
     BigDecimal sumBarberTotalByBarberIdBetween(final UUID barberId, final LocalDateTime start, final LocalDateTime end);
 
     BigDecimal sumTotalAmountByBarberIdBetween(final UUID barberId, final LocalDateTime start, final LocalDateTime end);

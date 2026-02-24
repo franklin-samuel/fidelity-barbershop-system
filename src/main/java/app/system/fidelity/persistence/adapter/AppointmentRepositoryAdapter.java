@@ -138,6 +138,21 @@ public class AppointmentRepositoryAdapter implements AppointmentRepositoryPort {
     }
 
     @Override
+    public long countDistinctCustomersBetween(final LocalDateTime start, final LocalDateTime end) {
+        return repository.countDistinctCustomersBetween(start, end);
+    }
+
+    @Override
+    public long countRetainedCustomers(
+            final LocalDateTime previousStart,
+            final LocalDateTime previousEnd,
+            final LocalDateTime currentStart,
+            final LocalDateTime currentEnd
+    ) {
+        return repository.countRetainedCustomers(previousStart, previousEnd, currentStart, currentEnd);
+    }
+
+    @Override
     public BigDecimal sumBarberTotalByBarberIdBetween(final UUID barberId, final LocalDateTime start, final LocalDateTime end) {
         return repository.sumBarberTotalByBarberIdBetween(barberId, start, end);
     }
