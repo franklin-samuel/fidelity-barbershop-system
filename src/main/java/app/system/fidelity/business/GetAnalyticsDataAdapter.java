@@ -67,7 +67,7 @@ public class GetAnalyticsDataAdapter implements GetAnalyticsDataPort {
         final List<StyleData> popularStyles = calculatePopularStyles(allCustomers);
         final Map<PreferredFrequency, Long> preferredFrequency = calculatePreferredFrequency(allCustomers);
 
-        final List<TopCustomer> topCustomers = calculateTopCustomers(allCustomers);
+        final List<TopCustomer> topCustomers = calculateTopCustomers(allCustomers, allAppointments);
         final Map<String, BigDecimal> avgTicketByAge = calculateAvgTicketByAge(allCustomers, allAppointments);
         final List<ChannelRevenue> channelVsRevenue = calculateChannelRevenue(allCustomers, allAppointments);
 
@@ -212,16 +212,26 @@ public class GetAnalyticsDataAdapter implements GetAnalyticsDataPort {
         return distribution;
     }
 
-    private List<TopCustomer> calculateTopCustomers(final List<Customer> customers) {
+    private List<TopCustomer> calculateTopCustomers(
+            final List<Customer> customers,
+            final List<Appointment> appointments
+    ) {
+        final Map<UUID, Long> appointmentsCountByCustomer = appointments.stream()
+                .filter(a -> a.getCustomerId() != null)
+                .collect(Collectors.groupingBy(Appointment::getCustomerId, Collectors.counting()));
+
         return customers.stream()
                 .filter(c -> c.getTotalSpent() != null && c.getTotalSpent().compareTo(BigDecimal.ZERO) > 0)
                 .sorted((a, b) -> b.getTotalSpent().compareTo(a.getTotalSpent()))
                 .limit(10)
-                .map(c -> TopCustomer.builder()
-                        .name(c.getName())
-                        .totalSpent(c.getTotalSpent())
-                        .visitsCount(c.getServiceCount())
-                        .build())
+                .map(c -> {
+                    final Long visitsCount = appointmentsCountByCustomer.getOrDefault(c.getId(), 0L);
+                    return TopCustomer.builder()
+                            .name(c.getName())
+                            .totalSpent(c.getTotalSpent())
+                            .visitsCount(visitsCount.intValue())
+                            .build();
+                })
                 .collect(Collectors.toList());
     }
 
