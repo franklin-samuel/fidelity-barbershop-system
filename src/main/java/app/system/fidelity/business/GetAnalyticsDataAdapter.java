@@ -5,7 +5,6 @@ import app.system.fidelity.core.business.GetAnalyticsDataPort;
 import app.system.fidelity.core.persistence.AppointmentRepositoryPort;
 import app.system.fidelity.core.persistence.CustomerRepositoryPort;
 import app.system.fidelity.domain.*;
-import app.system.fidelity.domain.AnalyticsData.*;
 import app.system.fidelity.domain.enums.Gender;
 import app.system.fidelity.domain.enums.PreferredFrequency;
 import app.system.fidelity.domain.enums.PreferredStyle;
@@ -18,7 +17,11 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.Period;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,49 +34,48 @@ public class GetAnalyticsDataAdapter implements GetAnalyticsDataPort {
 
     @Override
     public AnalyticsData execute(final Context context) {
-        final List<Customer> allCustomers = customerRepository.findAll();
-        final List<Appointment> allAppointments = appointmentRepository.findAll();
 
-        final Long totalCustomers = (long) allCustomers.size();
+        // --- Scalars direto do banco ---
+        final long totalCustomers = customerRepository.countAll();
+        final BigDecimal totalRevenue = appointmentRepository.sumTotalAmount();
 
-        final BigDecimal totalRevenue = allAppointments.stream()
-                .map(Appointment::getTotalAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        final Map<UUID, List<Appointment>> appointmentsByCustomer = allAppointments.stream()
-                .filter(a -> a.getCustomerId() != null)
-                .collect(Collectors.groupingBy(Appointment::getCustomerId));
-
-        final List<Appointment> appointmentsWithCustomer = allAppointments.stream()
-                .filter(a -> a.getCustomerId() != null)
-                .collect(Collectors.toList());
-
-        final BigDecimal revenueWithCustomer = appointmentsWithCustomer.stream()
-                .map(Appointment::getTotalAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        final BigDecimal averageTicket = !appointmentsWithCustomer.isEmpty()
-                ? revenueWithCustomer.divide(BigDecimal.valueOf(appointmentsWithCustomer.size()), 2, RoundingMode.HALF_UP)
+        final long countWithCustomer = appointmentRepository.countWithCustomer();
+        final BigDecimal revenueWithCustomer = appointmentRepository.sumTotalAmountWithCustomer();
+        final BigDecimal averageTicket = countWithCustomer > 0
+                ? revenueWithCustomer.divide(BigDecimal.valueOf(countWithCustomer), 2, RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
 
-        final long returningCustomers = allCustomers.stream()
-                .filter(c -> c.getServiceCount() != null && c.getServiceCount() > 1)
-                .count();
-
+        final long returningCustomers = customerRepository.countByServiceCountGreaterThanEqual(2);
         final Double retentionRate = totalCustomers > 0
                 ? Math.round((returningCustomers * 100.0 / totalCustomers) * 100.0) / 100.0
                 : 0.0;
 
+        final Map<Gender, Long> customersByGender = customerRepository.countGroupByGender();
+        final Map<ReferralSource, Long> referralCounts = customerRepository.countGroupByReferralSource();
+        final Map<PreferredFrequency, Long> preferredFrequency = customerRepository.countGroupByPreferredFrequency();
+        final Map<PreferredStyle, Long> styleCounts = customerRepository.countGroupByPreferredStyle();
+
+        final List<ChannelData> acquisitionChannels = buildAcquisitionChannels(referralCounts, totalCustomers);
+        final List<StyleData> popularStyles = buildPopularStyles(styleCounts);
+
+        // --- Top customers direto do banco (ORDER BY + LIMIT) ---
+        final List<TopCustomer> topCustomers = customerRepository.findTopCustomersByTotalSpent(10).stream()
+                .map(c -> TopCustomer.builder()
+                        .name(c.getName())
+                        .totalSpent(c.getTotalSpent())
+                        .visitsCount(c.getServiceCount())
+                        .build())
+                .collect(Collectors.toList());
+
+        final List<Customer> allCustomers = customerRepository.findAll();
+
+        final Map<UUID, CustomerAppointmentSummary> appointmentSummaryByCustomer =
+                appointmentRepository.findRevenueGroupByCustomer().stream()
+                        .collect(Collectors.toMap(CustomerAppointmentSummary::customerId, s -> s));
+
         final Map<String, Long> customersByAgeGroup = calculateAgeGroups(allCustomers);
-        final Map<Gender, Long> customersByGender = calculateGenderDistribution(allCustomers);
-
-        final List<ChannelData> acquisitionChannels = calculateAcquisitionChannels(allCustomers);
-        final List<StyleData> popularStyles = calculatePopularStyles(allCustomers);
-        final Map<PreferredFrequency, Long> preferredFrequency = calculatePreferredFrequency(allCustomers);
-
-        final List<TopCustomer> topCustomers = calculateTopCustomers(allCustomers, appointmentsByCustomer);
-        final Map<String, BigDecimal> avgTicketByAge = calculateAvgTicketByAge(allCustomers, appointmentsByCustomer);
-        final List<ChannelRevenue> channelVsRevenue = calculateChannelRevenue(allCustomers, appointmentsByCustomer);
+        final Map<String, BigDecimal> avgTicketByAge = calculateAvgTicketByAge(allCustomers, appointmentSummaryByCustomer);
+        final List<ChannelRevenue> channelVsRevenue = calculateChannelRevenue(allCustomers, appointmentSummaryByCustomer);
 
         return AnalyticsData.builder()
                 .totalCustomers(totalCustomers)
@@ -91,216 +93,89 @@ public class GetAnalyticsDataAdapter implements GetAnalyticsDataPort {
                 .build();
     }
 
-    private Map<String, Long> calculateAgeGroups(final List<Customer> customers) {
-        final Map<String, Long> ageGroups = new LinkedHashMap<>();
-        ageGroups.put("0-10", 0L);
-        ageGroups.put("11-17", 0L);
-        ageGroups.put("18-25", 0L);
-        ageGroups.put("26-35", 0L);
-        ageGroups.put("36-45", 0L);
-        ageGroups.put("46-60", 0L);
-        ageGroups.put("60+", 0L);
-        ageGroups.put("Não informado", 0L);
-
-        for (Customer customer : customers) {
-            if (customer.getDateOfBirth() == null) {
-                ageGroups.put("Não informado", ageGroups.get("Não informado") + 1);
-                continue;
-            }
-
-            final int age = Period.between(customer.getDateOfBirth(), LocalDate.now()).getYears();
-
-            if (age >= 0 && age <= 10) {
-                ageGroups.put("0-10", ageGroups.get("0-10") + 1);
-            } else if (age >= 11 && age <= 17) {
-                ageGroups.put("11-17", ageGroups.get("11-17") + 1);
-            } else if (age >= 18 && age <= 25) {
-                ageGroups.put("18-25", ageGroups.get("18-25") + 1);
-            } else if (age >= 26 && age <= 35) {
-                ageGroups.put("26-35", ageGroups.get("26-35") + 1);
-            } else if (age >= 36 && age <= 45) {
-                ageGroups.put("36-45", ageGroups.get("36-45") + 1);
-            } else if (age >= 46 && age <= 60) {
-                ageGroups.put("46-60", ageGroups.get("46-60") + 1);
-            } else if (age > 60) {
-                ageGroups.put("60+", ageGroups.get("60+") + 1);
-            }
-        }
-
-        return ageGroups;
-    }
-
-    private Map<Gender, Long> calculateGenderDistribution(final List<Customer> customers) {
-        final Map<Gender, Long> distribution = new EnumMap<>(Gender.class);
-
-        for (Gender gender : Gender.values()) {
-            distribution.put(gender, 0L);
-        }
-
-        customers.stream()
-                .collect(Collectors.groupingBy(
-                        c -> c.getGender() != null ? c.getGender() : Gender.NOT_INFORMED,
-                        Collectors.counting()
-                ))
-                .forEach(distribution::put);
-
-        return distribution;
-    }
-
-    private List<ChannelData> calculateAcquisitionChannels(final List<Customer> customers) {
-        final long total = customers.size();
-
-        final Map<ReferralSource, Long> grouped = customers.stream()
-                .collect(Collectors.groupingBy(
-                        c -> c.getReferralSource() != null ? c.getReferralSource() : ReferralSource.NOT_INFORMED,
-                        Collectors.counting()
-                ));
-
-        return grouped.entrySet().stream()
-                .sorted((a, b) -> b.getValue().compareTo(a.getValue()))
-                .map(entry -> {
-                    final ReferralSource channel = entry.getKey();
-                    final Long count = entry.getValue();
-                    final Double percentage = total > 0 ? (count * 100.0) / total : 0.0;
-
-                    return ChannelData.builder()
-                            .channel(channel)
-                            .customerCount(count)
-                            .percentage(Math.round(percentage * 100.0) / 100.0)
-                            .build();
-                })
-                .collect(Collectors.toList());
-    }
-
-    private List<StyleData> calculatePopularStyles(final List<Customer> customers) {
-        final long total = customers.stream()
-                .filter(c -> c.getPreferredStyle() != null)
-                .count();
-
-        return customers.stream()
-                .filter(c -> c.getPreferredStyle() != null)
-                .collect(Collectors.groupingBy(
-                        Customer::getPreferredStyle,
-                        Collectors.counting()
-                ))
-                .entrySet().stream()
-                .sorted((a, b) -> b.getValue().compareTo(a.getValue()))
-                .map(entry -> {
-                    final PreferredStyle style = entry.getKey();
-                    final Long count = entry.getValue();
-                    final Double percentage = total > 0 ? (count * 100.0) / total : 0.0;
-
-                    return StyleData.builder()
-                            .style(style)
-                            .count(count)
-                            .percentage(Math.round(percentage * 100.0) / 100.0)
-                            .build();
-                })
-                .collect(Collectors.toList());
-    }
-
-    private Map<PreferredFrequency, Long> calculatePreferredFrequency(final List<Customer> customers) {
-        final Map<PreferredFrequency, Long> distribution = new EnumMap<>(PreferredFrequency.class);
-
-        for (PreferredFrequency frequency : PreferredFrequency.values()) {
-            distribution.put(frequency, 0L);
-        }
-
-        customers.stream()
-                .collect(Collectors.groupingBy(
-                        c -> c.getPreferredFrequency() != null ? c.getPreferredFrequency() : PreferredFrequency.NOT_INFORMED,
-                        Collectors.counting()
-                ))
-                .forEach(distribution::put);
-
-        return distribution;
-    }
-
-    private List<TopCustomer> calculateTopCustomers(
-            final List<Customer> customers,
-            final Map<UUID, List<Appointment>> appointmentsByCustomer
+    private List<ChannelData> buildAcquisitionChannels(
+            final Map<ReferralSource, Long> counts,
+            final long total
     ) {
-        return customers.stream()
-                .filter(c -> c.getTotalSpent() != null && c.getTotalSpent().compareTo(BigDecimal.ZERO) > 0)
-                .sorted((a, b) -> b.getTotalSpent().compareTo(a.getTotalSpent()))
-                .limit(10)
-                .map(c -> {
-                    final Long visitsCount = appointmentsByCustomer.containsKey(c.getId())
-                            ? (long) appointmentsByCustomer.get(c.getId()).size()
-                            : 0L;
-                    return TopCustomer.builder()
-                            .name(c.getName())
-                            .totalSpent(c.getTotalSpent())
-                            .visitsCount(visitsCount.intValue())
+        return counts.entrySet().stream()
+                .sorted((a, b) -> b.getValue().compareTo(a.getValue()))
+                .map(entry -> {
+                    final double percentage = total > 0 ? (entry.getValue() * 100.0) / total : 0.0;
+                    return ChannelData.builder()
+                            .channel(entry.getKey())
+                            .customerCount(entry.getValue())
+                            .percentage(Math.round(percentage * 100.0) / 100.0)
                             .build();
                 })
                 .collect(Collectors.toList());
+    }
+
+    private List<StyleData> buildPopularStyles(final Map<PreferredStyle, Long> counts) {
+        final long total = counts.values().stream().mapToLong(Long::longValue).sum();
+        return counts.entrySet().stream()
+                .sorted((a, b) -> b.getValue().compareTo(a.getValue()))
+                .map(entry -> {
+                    final double percentage = total > 0 ? (entry.getValue() * 100.0) / total : 0.0;
+                    return StyleData.builder()
+                            .style(entry.getKey())
+                            .count(entry.getValue())
+                            .percentage(Math.round(percentage * 100.0) / 100.0)
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
+
+    private Map<String, Long> calculateAgeGroups(final List<Customer> customers) {
+        final Map<String, Long> groups = new LinkedHashMap<>();
+        groups.put("0-10", 0L);
+        groups.put("11-17", 0L);
+        groups.put("18-25", 0L);
+        groups.put("26-35", 0L);
+        groups.put("36-45", 0L);
+        groups.put("46-60", 0L);
+        groups.put("60+", 0L);
+        groups.put("Não informado", 0L);
+
+        for (final Customer c : customers) {
+            final String key = resolveAgeGroup(c);
+            groups.merge(key, 1L, Long::sum);
+        }
+
+        return groups;
     }
 
     private Map<String, BigDecimal> calculateAvgTicketByAge(
             final List<Customer> customers,
-            final Map<UUID, List<Appointment>> appointmentsByCustomer
+            final Map<UUID, CustomerAppointmentSummary> summaryByCustomer
     ) {
-        final Map<String, List<Customer>> customersByAge = new LinkedHashMap<>();
-        customersByAge.put("0-10", new ArrayList<>());
-        customersByAge.put("11-17", new ArrayList<>());
-        customersByAge.put("18-25", new ArrayList<>());
-        customersByAge.put("26-35", new ArrayList<>());
-        customersByAge.put("36-45", new ArrayList<>());
-        customersByAge.put("46-60", new ArrayList<>());
-        customersByAge.put("60+", new ArrayList<>());
+        final Map<String, BigDecimal> totalRevByGroup = new LinkedHashMap<>();
+        final Map<String, Long> countByGroup = new LinkedHashMap<>();
 
-        for (Customer customer : customers) {
-            if (customer.getDateOfBirth() == null) continue;
+        for (final String group : List.of("0-10", "11-17", "18-25", "26-35", "36-45", "46-60", "60+")) {
+            totalRevByGroup.put(group, BigDecimal.ZERO);
+            countByGroup.put(group, 0L);
+        }
 
-            final int age = Period.between(customer.getDateOfBirth(), LocalDate.now()).getYears();
+        for (final Customer c : customers) {
+            if (c.getDateOfBirth() == null) continue;
 
-            if (age >= 0 && age <= 10) {
-                customersByAge.get("0-10").add(customer);
-            } else if (age >= 11 && age <= 17) {
-                customersByAge.get("11-17").add(customer);
-            } else if (age >= 18 && age <= 25) {
-                customersByAge.get("18-25").add(customer);
-            } else if (age >= 26 && age <= 35) {
-                customersByAge.get("26-35").add(customer);
-            } else if (age >= 36 && age <= 45) {
-                customersByAge.get("36-45").add(customer);
-            } else if (age >= 46 && age <= 60) {
-                customersByAge.get("46-60").add(customer);
-            } else if (age > 60) {
-                customersByAge.get("60+").add(customer);
-            }
+            final String group = resolveAgeGroup(c);
+            if (group.equals("Não informado")) continue;
+
+            final CustomerAppointmentSummary summary = summaryByCustomer.get(c.getId());
+            if (summary == null) continue;
+
+            totalRevByGroup.merge(group, summary.totalRevenue(), BigDecimal::add);
+            countByGroup.merge(group, summary.appointmentCount(), Long::sum);
         }
 
         final Map<String, BigDecimal> result = new LinkedHashMap<>();
-        for (Map.Entry<String, List<Customer>> entry : customersByAge.entrySet()) {
-            final List<Customer> groupCustomers = entry.getValue();
-
-            if (groupCustomers.isEmpty()) {
-                result.put(entry.getKey(), BigDecimal.ZERO);
-                continue;
-            }
-
-            BigDecimal totalRevenue = BigDecimal.ZERO;
-            int totalAppointments = 0;
-
-            for (Customer customer : groupCustomers) {
-                final List<Appointment> customerAppointments = appointmentsByCustomer.get(customer.getId());
-                if (customerAppointments != null && !customerAppointments.isEmpty()) {
-                    totalRevenue = totalRevenue.add(
-                            customerAppointments.stream()
-                                    .map(Appointment::getTotalAmount)
-                                    .reduce(BigDecimal.ZERO, BigDecimal::add)
-                    );
-                    totalAppointments += customerAppointments.size();
-                }
-            }
-
-            final BigDecimal avgTicket = totalAppointments > 0
-                    ? totalRevenue.divide(BigDecimal.valueOf(totalAppointments), 2, RoundingMode.HALF_UP)
-                    : BigDecimal.ZERO;
-
-            result.put(entry.getKey(), avgTicket);
+        for (final String group : totalRevByGroup.keySet()) {
+            final long count = countByGroup.get(group);
+            result.put(group, count > 0
+                    ? totalRevByGroup.get(group).divide(BigDecimal.valueOf(count), 2, RoundingMode.HALF_UP)
+                    : BigDecimal.ZERO
+            );
         }
 
         return result;
@@ -308,43 +183,51 @@ public class GetAnalyticsDataAdapter implements GetAnalyticsDataPort {
 
     private List<ChannelRevenue> calculateChannelRevenue(
             final List<Customer> customers,
-            final Map<UUID, List<Appointment>> appointmentsByCustomer
+            final Map<UUID, CustomerAppointmentSummary> summaryByCustomer
     ) {
-        final Map<ReferralSource, List<Customer>> customersByChannel = customers.stream()
-                .filter(c -> c.getReferralSource() != null)
-                .collect(Collectors.groupingBy(Customer::getReferralSource));
+        final Map<ReferralSource, BigDecimal> revenueByChannel = new LinkedHashMap<>();
+        final Map<ReferralSource, Long> appointmentsByChannel = new LinkedHashMap<>();
+        final Map<ReferralSource, Long> customersByChannel = new LinkedHashMap<>();
 
-        return customersByChannel.entrySet().stream()
+        for (final Customer c : customers) {
+            if (c.getReferralSource() == null) continue;
+
+            final ReferralSource source = c.getReferralSource();
+            customersByChannel.merge(source, 1L, Long::sum);
+
+            final CustomerAppointmentSummary summary = summaryByCustomer.get(c.getId());
+            if (summary == null) continue;
+
+            revenueByChannel.merge(source, summary.totalRevenue(), BigDecimal::add);
+            appointmentsByChannel.merge(source, summary.appointmentCount(), Long::sum);
+        }
+
+        return revenueByChannel.entrySet().stream()
                 .map(entry -> {
-                    final ReferralSource channel = entry.getKey();
-                    final List<Customer> channelCustomers = entry.getValue();
-
-                    BigDecimal totalRevenue = BigDecimal.ZERO;
-                    int totalAppointments = 0;
-
-                    for (Customer customer : channelCustomers) {
-                        final List<Appointment> customerAppointments = appointmentsByCustomer.get(customer.getId());
-                        if (customerAppointments != null) {
-                            totalRevenue = totalRevenue.add(
-                                    customerAppointments.stream()
-                                            .map(Appointment::getTotalAmount)
-                                            .reduce(BigDecimal.ZERO, BigDecimal::add)
-                            );
-                            totalAppointments += customerAppointments.size();
-                        }
-                    }
-
-                    final BigDecimal avgTicket = totalAppointments > 0
-                            ? totalRevenue.divide(BigDecimal.valueOf(totalAppointments), 2, RoundingMode.HALF_UP)
+                    final ReferralSource source = entry.getKey();
+                    final long count = appointmentsByChannel.getOrDefault(source, 0L);
+                    final BigDecimal avgTicket = count > 0
+                            ? entry.getValue().divide(BigDecimal.valueOf(count), 2, RoundingMode.HALF_UP)
                             : BigDecimal.ZERO;
-
                     return ChannelRevenue.builder()
-                            .channel(channel)
+                            .channel(source)
                             .averageTicket(avgTicket)
-                            .customerCount((long) channelCustomers.size())
+                            .customerCount(customersByChannel.getOrDefault(source, 0L))
                             .build();
                 })
                 .sorted((a, b) -> b.getAverageTicket().compareTo(a.getAverageTicket()))
                 .collect(Collectors.toList());
+    }
+
+    private String resolveAgeGroup(final Customer customer) {
+        if (customer.getDateOfBirth() == null) return "Não informado";
+        final int age = Period.between(customer.getDateOfBirth(), LocalDate.now()).getYears();
+        if (age <= 10)  return "0-10";
+        if (age <= 17)  return "11-17";
+        if (age <= 25)  return "18-25";
+        if (age <= 35)  return "26-35";
+        if (age <= 45)  return "36-45";
+        if (age <= 60)  return "46-60";
+        return "60+";
     }
 }

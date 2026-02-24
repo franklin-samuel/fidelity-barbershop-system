@@ -2,12 +2,16 @@ package app.system.fidelity.persistence.adapter;
 
 import app.system.fidelity.core.persistence.AppointmentRepositoryPort;
 import app.system.fidelity.domain.Appointment;
+import app.system.fidelity.domain.BarberRevenueSummary;
+import app.system.fidelity.domain.CustomerAppointmentSummary;
 import app.system.fidelity.persistence.mapper.AppointmentMapper;
 import app.system.fidelity.persistence.repository.AppointmentRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,12 +44,17 @@ public class AppointmentRepositoryAdapter implements AppointmentRepositoryPort {
     public List<Appointment> findAll() {
         return of(repository.findAllByOrderByCreatedAtDesc())
                 .orElse(new ArrayList<>())
-                .stream().map(mapper::map).toList();
+                .stream()
+                .map(mapper::map)
+                .toList();
     }
 
     @Override
     public List<Appointment> findByBarberId(final UUID barberId) {
-        return repository.findByBarberIdOrderByCreatedAtDesc(barberId).stream().map(mapper::map).toList();
+        return repository.findByBarberIdOrderByCreatedAtDesc(barberId)
+                .stream()
+                .map(mapper::map)
+                .toList();
     }
 
     @Override
@@ -73,4 +82,84 @@ public class AppointmentRepositoryAdapter implements AppointmentRepositoryPort {
     public long countByLoyaltyDiscountApplied(final boolean value) {
         return repository.countByLoyaltyDiscountApplied(value);
     }
+
+    @Override
+    public BigDecimal sumTotalAmount() {
+        return repository.sumTotalAmount();
+    }
+
+    @Override
+    public BigDecimal sumTotalAmountWithCustomer() {
+        return repository.sumTotalAmountWithCustomer();
+    }
+
+    @Override
+    public long countWithCustomer() {
+        return repository.countWithCustomer();
+    }
+
+    @Override
+    public BigDecimal sumBarbershopRevenueBetween(final LocalDateTime start, final LocalDateTime end) {
+        return repository.sumBarbershopRevenueBetween(start, end);
+    }
+
+    @Override
+    public BigDecimal sumServicesRevenueBetween(final LocalDateTime start, final LocalDateTime end) {
+        return repository.sumServicesRevenueBetween(start, end);
+    }
+
+    @Override
+    public BigDecimal sumProductsRevenueBetween(final LocalDateTime start, final LocalDateTime end) {
+        return repository.sumProductsRevenueBetween(start, end);
+    }
+
+    @Override
+    public List<BarberRevenueSummary> findTopBarbersByRevenueBetween(final LocalDateTime start, final LocalDateTime end) {
+        return repository.findTopBarbersByRevenueBetween(start, end, PageRequest.of(0, 5))
+                .stream()
+                .map(row -> new BarberRevenueSummary(
+                        (UUID) row[0],
+                        (BigDecimal) row[1],
+                        (Long) row[2]
+                ))
+                .toList();
+    }
+
+    @Override
+    public List<CustomerAppointmentSummary> findRevenueGroupByCustomer() {
+        return repository.findRevenueGroupByCustomer()
+                .stream()
+                .map(row -> new CustomerAppointmentSummary(
+                        (UUID) row[0],
+                        (BigDecimal) row[1],
+                        (Long) row[2]
+                ))
+                .toList();
+    }
+
+    @Override
+    public BigDecimal sumBarberTotalByBarberIdBetween(final UUID barberId, final LocalDateTime start, final LocalDateTime end) {
+        return repository.sumBarberTotalByBarberIdBetween(barberId, start, end);
+    }
+
+    @Override
+    public BigDecimal sumTotalAmountByBarberIdBetween(final UUID barberId, final LocalDateTime start, final LocalDateTime end) {
+        return repository.sumTotalAmountByBarberIdBetween(barberId, start, end);
+    }
+
+    @Override
+    public long countByBarberIdBetween(final UUID barberId, final LocalDateTime start, final LocalDateTime end) {
+        return repository.countByBarberIdBetween(barberId, start, end);
+    }
+
+    @Override
+    public BigDecimal sumTipsByBarberIdBetween(final UUID barberId, final LocalDateTime start, final LocalDateTime end) {
+        return repository.sumTipsByBarberIdBetween(barberId, start, end);
+    }
+
+    @Override
+    public BigDecimal sumCommissionByBarberIdBetween(final UUID barberId, final LocalDateTime start, final LocalDateTime end) {
+        return repository.sumCommissionByBarberIdBetween(barberId, start, end);
+    }
+
 }

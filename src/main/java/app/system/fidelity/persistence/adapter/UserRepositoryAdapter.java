@@ -5,9 +5,9 @@ import app.system.fidelity.domain.User;
 import app.system.fidelity.domain.enums.Role;
 import app.system.fidelity.persistence.mapper.UserMapper;
 import app.system.fidelity.persistence.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
-import jakarta.transaction.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,35 +39,31 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
 
     @Override
     public List<User> findAll() {
-        return of(repository.findAll())
-                .orElse(new ArrayList<>())
+        return repository.findAll()
                 .stream()
-                .filter(user -> user.getDeletedAt() == null)
-                .map(mapper::map).toList();
+                .map(mapper::map)
+                .toList();
     }
 
     @Override
     public List<User> findAllBarbers() {
-        return of(repository.findAll())
-                .orElse(new ArrayList<>())
+        return repository.findByRole(Role.BARBER)
                 .stream()
-                .filter(user -> user.getDeletedAt() == null && user.getRole() == Role.BARBER)
-                .map(mapper::map).toList();
+                .map(mapper::map)
+                .toList();
     }
 
     @Override
     public List<User> findAllAdmins() {
-        return of(repository.findAll())
-                .orElse(new ArrayList<>())
+        return repository.findByRole(Role.ADMIN)
                 .stream()
-                .filter(user -> user.getDeletedAt() == null && user.getRole() == Role.ADMIN)
-                .map(mapper::map).toList();
+                .map(mapper::map)
+                .toList();
     }
 
     @Override
     public Optional<User> findByEmail(final String email) {
-        return repository.findByEmail(email)
-                .map(mapper::map);
+        return repository.findByEmail(email).map(mapper::map);
     }
 
     @Override
@@ -80,7 +76,8 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
         if (ids == null || ids.isEmpty()) {
             return new ArrayList<>();
         }
-        return repository.findAllById(ids).stream()
+        return repository.findAllById(ids)
+                .stream()
                 .map(mapper::map)
                 .toList();
     }

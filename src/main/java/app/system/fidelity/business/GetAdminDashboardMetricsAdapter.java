@@ -6,6 +6,7 @@ import app.system.fidelity.core.persistence.AppointmentRepositoryPort;
 import app.system.fidelity.core.persistence.UserRepositoryPort;
 import app.system.fidelity.domain.Appointment;
 import app.system.fidelity.domain.BarberPerformance;
+import app.system.fidelity.domain.BarberRevenueSummary;
 import app.system.fidelity.domain.DailyRevenue;
 import app.system.fidelity.domain.DashboardMetrics;
 import app.system.fidelity.domain.User;
@@ -17,7 +18,12 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,56 +46,22 @@ public class GetAdminDashboardMetricsAdapter implements GetAdminDashboardMetrics
         final LocalDateTime endOfPreviousMonth = startOfMonth.minusSeconds(1);
         final LocalDateTime thirtyDaysAgo = now.minusDays(30).toLocalDate().atStartOfDay();
 
-        final List<Appointment> last30DaysAppointments = appointmentRepository
-                .findByCreatedAtBetween(thirtyDaysAgo, endOfToday);
+        final BigDecimal todayRevenue = appointmentRepository.sumBarbershopRevenueBetween(startOfToday, endOfToday);
+        final BigDecimal weekRevenue = appointmentRepository.sumBarbershopRevenueBetween(startOfWeek, endOfToday);
+        final BigDecimal monthRevenue = appointmentRepository.sumBarbershopRevenueBetween(startOfMonth, endOfToday);
+        final BigDecimal previousMonthRevenue = appointmentRepository.sumBarbershopRevenueBetween(startOfPreviousMonth, endOfPreviousMonth);
 
-        BigDecimal todayRevenue = BigDecimal.ZERO;
-        BigDecimal weekRevenue = BigDecimal.ZERO;
-        BigDecimal monthRevenue = BigDecimal.ZERO;
-        BigDecimal servicesRevenue = BigDecimal.ZERO;
-        BigDecimal productsRevenue = BigDecimal.ZERO;
-
-        final Map<LocalDate, BigDecimal> dailyRevenueMap = new HashMap<>();
-        final List<Appointment> currentMonthAppointments = new ArrayList<>();
-
-        for (Appointment appointment : last30DaysAppointments) {
-            final BigDecimal revenue = appointment.getBarbershopRevenue();
-
-            if (!appointment.getCreatedAt().isBefore(startOfToday)) {
-                todayRevenue = todayRevenue.add(revenue);
-            }
-
-            if (!appointment.getCreatedAt().isBefore(startOfWeek)) {
-                weekRevenue = weekRevenue.add(revenue);
-            }
-
-            if (!appointment.getCreatedAt().isBefore(startOfMonth)) {
-                monthRevenue = monthRevenue.add(revenue);
-                currentMonthAppointments.add(appointment);
-
-                if (appointment.getServiceId() != null) {
-                    servicesRevenue = servicesRevenue.add(revenue);
-                } else {
-                    productsRevenue = productsRevenue.add(revenue);
-                }
-            }
-
-            final LocalDate date = appointment.getCreatedAt().toLocalDate();
-            dailyRevenueMap.merge(date, revenue, BigDecimal::add);
-        }
-
-        final List<DailyRevenue> last30DaysRevenue = calculateDailyRevenue(dailyRevenueMap, thirtyDaysAgo, endOfToday);
-
-        final List<Appointment> previousMonthAppointments = appointmentRepository
-                .findByCreatedAtBetween(startOfPreviousMonth, endOfPreviousMonth);
-
-        final BigDecimal previousMonthRevenue = previousMonthAppointments.stream()
-                .map(Appointment::getBarbershopRevenue)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        final BigDecimal servicesRevenue = appointmentRepository.sumServicesRevenueBetween(startOfMonth, endOfToday);
+        final BigDecimal productsRevenue = appointmentRepository.sumProductsRevenueBetween(startOfMonth, endOfToday);
 
         final BigDecimal monthlyGrowthPercentage = calculateGrowthPercentage(previousMonthRevenue, monthRevenue);
 
-        final List<BarberPerformance> topBarbers = calculateTopBarbers(currentMonthAppointments);
+        final List<BarberPerformance> topBarbers = buildTopBarbers(
+                appointmentRepository.findTopBarbersByRevenueBetween(startOfMonth, endOfToday)
+        );
+
+        final List<Appointment> last30Days = appointmentRepository.findByCreatedAtBetween(thirtyDaysAgo, endOfToday);
+        final List<DailyRevenue> last30DaysRevenue = calculateDailyRevenue(last30Days, thirtyDaysAgo, endOfToday);
 
         return DashboardMetrics.builder()
                 .todayRevenue(todayRevenue)
@@ -105,57 +77,48 @@ public class GetAdminDashboardMetricsAdapter implements GetAdminDashboardMetrics
                 .build();
     }
 
-    private List<BarberPerformance> calculateTopBarbers(final List<Appointment> appointments) {
-        final Map<UUID, List<Appointment>> appointmentsByBarber = appointments.stream()
-                .filter(a -> a.getBarberId() != null)
-                .collect(Collectors.groupingBy(Appointment::getBarberId));
-
-        if (appointmentsByBarber.isEmpty()) {
-            return Collections.emptyList();
+    private List<BarberPerformance> buildTopBarbers(final List<BarberRevenueSummary> summaries) {
+        if (summaries.isEmpty()) {
+            return List.of();
         }
 
-        final Set<UUID> barberIds = appointmentsByBarber.keySet();
+        final Set<UUID> barberIds = summaries.stream()
+                .map(BarberRevenueSummary::barberId)
+                .collect(Collectors.toSet());
 
         final Map<UUID, String> barberNames = userRepositoryPort.findAllById(barberIds).stream()
                 .collect(Collectors.toMap(User::getId, User::getName));
 
-        return appointmentsByBarber.entrySet().stream()
-                .map(entry -> {
-                    final UUID barberId = entry.getKey();
-                    final List<Appointment> barberAppointments = entry.getValue();
-
-                    final BigDecimal totalRevenue = barberAppointments.stream()
-                            .map(Appointment::getBarbershopRevenue)
-                            .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-                    final String barberName = barberNames.getOrDefault(barberId, "Barbeiro Desconhecido");
-
-                    return BarberPerformance.builder()
-                            .barberName(barberName)
-                            .totalRevenue(totalRevenue)
-                            .appointmentsCount(barberAppointments.size())
-                            .build();
-                })
-                .sorted((a, b) -> b.getTotalRevenue().compareTo(a.getTotalRevenue()))
-                .limit(5)
-                .collect(Collectors.toList());
+        return summaries.stream()
+                .map(s -> BarberPerformance.builder()
+                        .barberName(barberNames.getOrDefault(s.barberId(), "Barbeiro Desconhecido"))
+                        .totalRevenue(s.revenue())
+                        .appointmentsCount(s.appointmentsCount().intValue())
+                        .build())
+                .toList();
     }
 
     private List<DailyRevenue> calculateDailyRevenue(
-            final Map<LocalDate, BigDecimal> dailyRevenueMap,
+            final List<Appointment> appointments,
             final LocalDateTime startDate,
             final LocalDateTime endDate
     ) {
+        final Map<LocalDate, BigDecimal> dailyMap = new HashMap<>();
+        for (final Appointment a : appointments) {
+            final LocalDate date = a.getCreatedAt().toLocalDate();
+            dailyMap.merge(date, a.getBarbershopRevenue(), BigDecimal::add);
+        }
+
         final List<DailyRevenue> result = new ArrayList<>();
-        LocalDate currentDate = startDate.toLocalDate();
+        LocalDate current = startDate.toLocalDate();
         final LocalDate end = endDate.toLocalDate();
 
-        while (!currentDate.isAfter(end)) {
+        while (!current.isAfter(end)) {
             result.add(DailyRevenue.builder()
-                    .date(currentDate)
-                    .amount(dailyRevenueMap.getOrDefault(currentDate, BigDecimal.ZERO))
+                    .date(current)
+                    .amount(dailyMap.getOrDefault(current, BigDecimal.ZERO))
                     .build());
-            currentDate = currentDate.plusDays(1);
+            current = current.plusDays(1);
         }
 
         return result;
