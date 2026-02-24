@@ -40,6 +40,10 @@ public class GetAnalyticsDataAdapter implements GetAnalyticsDataPort {
                 .map(Appointment::getTotalAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
+        final Map<UUID, List<Appointment>> appointmentsByCustomer = allAppointments.stream()
+                .filter(a -> a.getCustomerId() != null)
+                .collect(Collectors.groupingBy(Appointment::getCustomerId));
+
         final List<Appointment> appointmentsWithCustomer = allAppointments.stream()
                 .filter(a -> a.getCustomerId() != null)
                 .collect(Collectors.toList());
@@ -57,7 +61,7 @@ public class GetAnalyticsDataAdapter implements GetAnalyticsDataPort {
                 .count();
 
         final Double retentionRate = totalCustomers > 0
-                ? (returningCustomers * 100.0) / totalCustomers
+                ? Math.round((returningCustomers * 100.0 / totalCustomers) * 100.0) / 100.0
                 : 0.0;
 
         final Map<String, Long> customersByAgeGroup = calculateAgeGroups(allCustomers);
@@ -67,15 +71,15 @@ public class GetAnalyticsDataAdapter implements GetAnalyticsDataPort {
         final List<StyleData> popularStyles = calculatePopularStyles(allCustomers);
         final Map<PreferredFrequency, Long> preferredFrequency = calculatePreferredFrequency(allCustomers);
 
-        final List<TopCustomer> topCustomers = calculateTopCustomers(allCustomers, allAppointments);
-        final Map<String, BigDecimal> avgTicketByAge = calculateAvgTicketByAge(allCustomers, allAppointments);
-        final List<ChannelRevenue> channelVsRevenue = calculateChannelRevenue(allCustomers, allAppointments);
+        final List<TopCustomer> topCustomers = calculateTopCustomers(allCustomers, appointmentsByCustomer);
+        final Map<String, BigDecimal> avgTicketByAge = calculateAvgTicketByAge(allCustomers, appointmentsByCustomer);
+        final List<ChannelRevenue> channelVsRevenue = calculateChannelRevenue(allCustomers, appointmentsByCustomer);
 
         return AnalyticsData.builder()
                 .totalCustomers(totalCustomers)
                 .averageTicket(averageTicket)
                 .totalRevenue(totalRevenue)
-                .retentionRate(Math.round(retentionRate * 100.0) / 100.0)
+                .retentionRate(retentionRate)
                 .customersByAgeGroup(customersByAgeGroup)
                 .customerByGender(customersByGender)
                 .acquisitionChannels(acquisitionChannels)
@@ -214,18 +218,16 @@ public class GetAnalyticsDataAdapter implements GetAnalyticsDataPort {
 
     private List<TopCustomer> calculateTopCustomers(
             final List<Customer> customers,
-            final List<Appointment> appointments
+            final Map<UUID, List<Appointment>> appointmentsByCustomer
     ) {
-        final Map<UUID, Long> appointmentsCountByCustomer = appointments.stream()
-                .filter(a -> a.getCustomerId() != null)
-                .collect(Collectors.groupingBy(Appointment::getCustomerId, Collectors.counting()));
-
         return customers.stream()
                 .filter(c -> c.getTotalSpent() != null && c.getTotalSpent().compareTo(BigDecimal.ZERO) > 0)
                 .sorted((a, b) -> b.getTotalSpent().compareTo(a.getTotalSpent()))
                 .limit(10)
                 .map(c -> {
-                    final Long visitsCount = appointmentsCountByCustomer.getOrDefault(c.getId(), 0L);
+                    final Long visitsCount = appointmentsByCustomer.containsKey(c.getId())
+                            ? (long) appointmentsByCustomer.get(c.getId()).size()
+                            : 0L;
                     return TopCustomer.builder()
                             .name(c.getName())
                             .totalSpent(c.getTotalSpent())
@@ -237,12 +239,8 @@ public class GetAnalyticsDataAdapter implements GetAnalyticsDataPort {
 
     private Map<String, BigDecimal> calculateAvgTicketByAge(
             final List<Customer> customers,
-            final List<Appointment> appointments
+            final Map<UUID, List<Appointment>> appointmentsByCustomer
     ) {
-        final Map<UUID, List<Appointment>> appointmentsByCustomer = appointments.stream()
-                .filter(a -> a.getCustomerId() != null)
-                .collect(Collectors.groupingBy(Appointment::getCustomerId));
-
         final Map<String, List<Customer>> customersByAge = new LinkedHashMap<>();
         customersByAge.put("0-10", new ArrayList<>());
         customersByAge.put("11-17", new ArrayList<>());
@@ -310,12 +308,8 @@ public class GetAnalyticsDataAdapter implements GetAnalyticsDataPort {
 
     private List<ChannelRevenue> calculateChannelRevenue(
             final List<Customer> customers,
-            final List<Appointment> appointments
+            final Map<UUID, List<Appointment>> appointmentsByCustomer
     ) {
-        final Map<UUID, List<Appointment>> appointmentsByCustomer = appointments.stream()
-                .filter(a -> a.getCustomerId() != null)
-                .collect(Collectors.groupingBy(Appointment::getCustomerId));
-
         final Map<ReferralSource, List<Customer>> customersByChannel = customers.stream()
                 .filter(c -> c.getReferralSource() != null)
                 .collect(Collectors.groupingBy(Customer::getReferralSource));

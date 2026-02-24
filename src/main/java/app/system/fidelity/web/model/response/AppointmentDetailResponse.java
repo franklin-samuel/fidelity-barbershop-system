@@ -64,7 +64,6 @@ public record AppointmentDetailResponse(
         @JsonProperty("loyalty_discount_applied")
         Boolean loyaltyDiscountApplied,
 
-        // Novos campos - visibilidade controlada no mapper
         @JsonProperty("barber_total")
         BigDecimal barberTotal,
 

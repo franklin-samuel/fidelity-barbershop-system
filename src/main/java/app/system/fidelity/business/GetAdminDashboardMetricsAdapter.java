@@ -43,22 +43,42 @@ public class GetAdminDashboardMetricsAdapter implements GetAdminDashboardMetrics
         final List<Appointment> last30DaysAppointments = appointmentRepository
                 .findByCreatedAtBetween(thirtyDaysAgo, endOfToday);
 
-        final BigDecimal todayRevenue = last30DaysAppointments.stream()
-                .filter(a -> !a.getCreatedAt().isBefore(startOfToday))
-                .map(Appointment::getBarbershopRevenue)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal todayRevenue = BigDecimal.ZERO;
+        BigDecimal weekRevenue = BigDecimal.ZERO;
+        BigDecimal monthRevenue = BigDecimal.ZERO;
+        BigDecimal servicesRevenue = BigDecimal.ZERO;
+        BigDecimal productsRevenue = BigDecimal.ZERO;
 
-        final BigDecimal weekRevenue = last30DaysAppointments.stream()
-                .filter(a -> !a.getCreatedAt().isBefore(startOfWeek))
-                .map(Appointment::getBarbershopRevenue)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        final Map<LocalDate, BigDecimal> dailyRevenueMap = new HashMap<>();
+        final List<Appointment> currentMonthAppointments = new ArrayList<>();
 
-        final BigDecimal monthRevenue = last30DaysAppointments.stream()
-                .filter(a -> !a.getCreatedAt().isBefore(startOfMonth))
-                .map(Appointment::getBarbershopRevenue)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        for (Appointment appointment : last30DaysAppointments) {
+            final BigDecimal revenue = appointment.getBarbershopRevenue();
 
-        final List<DailyRevenue> last30DaysRevenue = calculateDailyRevenue(last30DaysAppointments, thirtyDaysAgo, endOfToday);
+            if (!appointment.getCreatedAt().isBefore(startOfToday)) {
+                todayRevenue = todayRevenue.add(revenue);
+            }
+
+            if (!appointment.getCreatedAt().isBefore(startOfWeek)) {
+                weekRevenue = weekRevenue.add(revenue);
+            }
+
+            if (!appointment.getCreatedAt().isBefore(startOfMonth)) {
+                monthRevenue = monthRevenue.add(revenue);
+                currentMonthAppointments.add(appointment);
+
+                if (appointment.getServiceId() != null) {
+                    servicesRevenue = servicesRevenue.add(revenue);
+                } else {
+                    productsRevenue = productsRevenue.add(revenue);
+                }
+            }
+
+            final LocalDate date = appointment.getCreatedAt().toLocalDate();
+            dailyRevenueMap.merge(date, revenue, BigDecimal::add);
+        }
+
+        final List<DailyRevenue> last30DaysRevenue = calculateDailyRevenue(dailyRevenueMap, thirtyDaysAgo, endOfToday);
 
         final List<Appointment> previousMonthAppointments = appointmentRepository
                 .findByCreatedAtBetween(startOfPreviousMonth, endOfPreviousMonth);
@@ -69,20 +89,7 @@ public class GetAdminDashboardMetricsAdapter implements GetAdminDashboardMetrics
 
         final BigDecimal monthlyGrowthPercentage = calculateGrowthPercentage(previousMonthRevenue, monthRevenue);
 
-        final List<Appointment> currentMonthAppointments = last30DaysAppointments.stream()
-                .filter(a -> !a.getCreatedAt().isBefore(startOfMonth))
-                .toList();
-
         final List<BarberPerformance> topBarbers = calculateTopBarbers(currentMonthAppointments);
-
-        final Map<Boolean, BigDecimal> revenueByType = currentMonthAppointments.stream()
-                .collect(Collectors.groupingBy(
-                        a -> a.getServiceId() != null,
-                        Collectors.reducing(BigDecimal.ZERO, Appointment::getBarbershopRevenue, BigDecimal::add)
-                ));
-
-        final BigDecimal servicesRevenue = revenueByType.getOrDefault(true, BigDecimal.ZERO);
-        final BigDecimal productsRevenue = revenueByType.getOrDefault(false, BigDecimal.ZERO);
 
         return DashboardMetrics.builder()
                 .todayRevenue(todayRevenue)
@@ -103,10 +110,13 @@ public class GetAdminDashboardMetricsAdapter implements GetAdminDashboardMetrics
                 .filter(a -> a.getBarberId() != null)
                 .collect(Collectors.groupingBy(Appointment::getBarberId));
 
+        if (appointmentsByBarber.isEmpty()) {
+            return Collections.emptyList();
+        }
+
         final Set<UUID> barberIds = appointmentsByBarber.keySet();
 
-        final Map<UUID, String> barberNames = userRepositoryPort.findAllBarbers().stream()
-                .filter(user -> barberIds.contains(user.getId()))
+        final Map<UUID, String> barberNames = userRepositoryPort.findAllById(barberIds).stream()
                 .collect(Collectors.toMap(User::getId, User::getName));
 
         return appointmentsByBarber.entrySet().stream()
@@ -132,16 +142,10 @@ public class GetAdminDashboardMetricsAdapter implements GetAdminDashboardMetrics
     }
 
     private List<DailyRevenue> calculateDailyRevenue(
-            final List<Appointment> appointments,
+            final Map<LocalDate, BigDecimal> dailyRevenueMap,
             final LocalDateTime startDate,
             final LocalDateTime endDate
     ) {
-        final Map<LocalDate, BigDecimal> dailyMap = appointments.stream()
-                .collect(Collectors.groupingBy(
-                        a -> a.getCreatedAt().toLocalDate(),
-                        Collectors.reducing(BigDecimal.ZERO, Appointment::getBarbershopRevenue, BigDecimal::add)
-                ));
-
         final List<DailyRevenue> result = new ArrayList<>();
         LocalDate currentDate = startDate.toLocalDate();
         final LocalDate end = endDate.toLocalDate();
@@ -149,7 +153,7 @@ public class GetAdminDashboardMetricsAdapter implements GetAdminDashboardMetrics
         while (!currentDate.isAfter(end)) {
             result.add(DailyRevenue.builder()
                     .date(currentDate)
-                    .amount(dailyMap.getOrDefault(currentDate, BigDecimal.ZERO))
+                    .amount(dailyRevenueMap.getOrDefault(currentDate, BigDecimal.ZERO))
                     .build());
             currentDate = currentDate.plusDays(1);
         }

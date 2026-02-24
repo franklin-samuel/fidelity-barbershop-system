@@ -17,8 +17,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -40,34 +39,82 @@ public class GetAppointmentDetailsAdapter implements GetAppointmentDetailsPort {
                 ? appointmentRepository.findByBarberId(barberId)
                 : appointmentRepository.findAll();
 
+        if (appointments.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        final Set<UUID> barberIds = appointments.stream()
+                .map(Appointment::getBarberId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        final Set<UUID> customerIds = appointments.stream()
+                .map(Appointment::getCustomerId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        final Set<UUID> serviceIds = appointments.stream()
+                .map(Appointment::getServiceId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        final Set<UUID> productIds = appointments.stream()
+                .map(Appointment::getProductId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        final Map<UUID, String> barberNames = barberIds.isEmpty()
+                ? Collections.emptyMap()
+                : userRepository.findAllById(barberIds).stream()
+                .collect(Collectors.toMap(User::getId, User::getName));
+
+        final Map<UUID, String> customerNames = customerIds.isEmpty()
+                ? Collections.emptyMap()
+                : customerRepository.findAllById(customerIds).stream()
+                .collect(Collectors.toMap(Customer::getId, Customer::getName));
+
+        final Map<UUID, String> serviceNames = serviceIds.isEmpty()
+                ? Collections.emptyMap()
+                : serviceRepository.findAllById(serviceIds).stream()
+                .collect(Collectors.toMap(Service::getId, Service::getName));
+
+        final Map<UUID, String> productNames = productIds.isEmpty()
+                ? Collections.emptyMap()
+                : productRepository.findAllById(productIds).stream()
+                .collect(Collectors.toMap(Product::getId, Product::getName));
+
         return appointments.stream()
-                .map(this::enrichAppointment)
+                .map(appointment -> enrichAppointment(
+                        appointment,
+                        barberNames,
+                        customerNames,
+                        serviceNames,
+                        productNames
+                ))
                 .collect(Collectors.toList());
     }
 
-    private AppointmentDetail enrichAppointment(final Appointment appointment) {
+    private AppointmentDetail enrichAppointment(
+            final Appointment appointment,
+            final Map<UUID, String> barberNames,
+            final Map<UUID, String> customerNames,
+            final Map<UUID, String> serviceNames,
+            final Map<UUID, String> productNames
+    ) {
         final String barberName = appointment.getBarberId() != null
-                ? userRepository.get(appointment.getBarberId())
-                .map(User::getName)
-                .orElse(null)
+                ? barberNames.get(appointment.getBarberId())
                 : null;
 
         final String customerName = appointment.getCustomerId() != null
-                ? customerRepository.get(appointment.getCustomerId())
-                .map(Customer::getName)
-                .orElse(null)
+                ? customerNames.get(appointment.getCustomerId())
                 : null;
 
         final String serviceName = appointment.getServiceId() != null
-                ? serviceRepository.get(appointment.getServiceId())
-                .map(Service::getName)
-                .orElse(null)
+                ? serviceNames.get(appointment.getServiceId())
                 : null;
 
         final String productName = appointment.getProductId() != null
-                ? productRepository.get(appointment.getProductId())
-                .map(Product::getName)
-                .orElse(null)
+                ? productNames.get(appointment.getProductId())
                 : null;
 
         return AppointmentDetail.builder()

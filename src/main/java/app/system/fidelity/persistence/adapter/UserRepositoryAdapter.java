@@ -12,8 +12,10 @@ import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import static java.util.Optional.of;
+import java.util.Set;
 import java.util.UUID;
+
+import static java.util.Optional.of;
 
 @Repository
 @RequiredArgsConstructor
@@ -71,6 +73,16 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     @Override
     public boolean existsByEmail(final String email) {
         return repository.existsByEmail(email);
+    }
+
+    @Override
+    public List<User> findAllById(final Set<UUID> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return repository.findAllById(ids).stream()
+                .map(mapper::map)
+                .toList();
     }
 
 }

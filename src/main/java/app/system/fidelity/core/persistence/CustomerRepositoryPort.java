@@ -5,6 +5,8 @@ import app.system.fidelity.domain.Customer;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 
 public interface CustomerRepositoryPort extends BaseRepositoryPort<Customer> {
 
@@ -17,5 +19,7 @@ public interface CustomerRepositoryPort extends BaseRepositoryPort<Customer> {
     long countAll();
 
     long countByServiceCountGreaterThanEqual(int haircutCount);
+
+    List<Customer> findAllById(Set<UUID> ids);
 
 }

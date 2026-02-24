@@ -2,7 +2,6 @@ package app.system.fidelity.persistence.adapter;
 
 import app.system.fidelity.core.persistence.CustomerRepositoryPort;
 import app.system.fidelity.domain.Customer;
-import app.system.fidelity.domain.User;
 import app.system.fidelity.persistence.mapper.CustomerMapper;
 import app.system.fidelity.persistence.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +11,7 @@ import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import static java.util.Optional.of;
@@ -71,6 +71,16 @@ public class CustomerRepositoryAdapter implements CustomerRepositoryPort {
     @Override
     public long countByServiceCountGreaterThanEqual(final int haircutCount) {
         return repository.countByServiceCountGreaterThanEqual(haircutCount);
+    }
+
+    @Override
+    public List<Customer> findAllById(final Set<UUID> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return repository.findAllById(ids).stream()
+                .map(mapper::map)
+                .toList();
     }
 
 }

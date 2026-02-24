@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import static java.util.Optional.of;
@@ -45,5 +46,15 @@ public class ProductRepositoryAdapter implements ProductRepositoryPort {
     @Override
     public void delete(final UUID id) {
         repository.deleteById(id);
+    }
+
+    @Override
+    public List<Product> findAllById(final Set<UUID> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return repository.findAllById(ids).stream()
+                .map(mapper::map)
+                .toList();
     }
 }
