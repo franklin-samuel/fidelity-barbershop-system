@@ -24,7 +24,11 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(final String username) throws UsernameNotFoundException {
         final var user = ofNullable(userRepositoryPort.findByEmail(username))
                 .get()
-                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado!"));
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado."));
+
+        if (user.getDeletedAt() != null) {
+            throw new UsernameNotFoundException("Usuário foi deletado.");
+        }
 
         return CustomUserDetails.builder()
                 .userId(user.getId())
