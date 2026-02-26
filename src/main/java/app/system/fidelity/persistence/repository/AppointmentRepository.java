@@ -131,10 +131,13 @@ public interface AppointmentRepository extends JpaRepository<AppointmentEntity, 
             @Param("end") LocalDateTime end
     );
 
-    @Query("SELECT FUNCTION('EXTRACT', 'DOW', a.createdAt), SUM(a.totalAmount), COUNT(a) " +
-            "FROM AppointmentEntity a " +
-            "WHERE a.createdAt >= :startDate " +
-            "GROUP BY FUNCTION('EXTRACT', 'DOW', a.createdAt)")
+    @Query(value = "SELECT EXTRACT(DOW FROM a.created_at) as day_of_week, " +
+            "SUM(a.total_amount) as total_revenue, " +
+            "COUNT(a.id) as appointment_count " +
+            "FROM appointments a " +
+            "WHERE a.created_at >= :startDate " +
+            "GROUP BY EXTRACT(DOW FROM a.created_at)",
+            nativeQuery = true)
     List<Object[]> sumRevenueAndCountByWeekdayFrom(@Param("startDate") LocalDateTime startDate);
 
     @Query("SELECT COALESCE(SUM(a.totalAmount), 0) FROM AppointmentEntity a " +
