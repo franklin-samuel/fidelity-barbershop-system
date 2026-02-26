@@ -7,6 +7,7 @@ import app.system.fidelity.domain.enums.PreferredFrequency;
 import app.system.fidelity.domain.enums.PreferredStyle;
 import app.system.fidelity.domain.enums.ReferralSource;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -36,5 +37,7 @@ public interface CustomerRepositoryPort extends BaseRepositoryPort<Customer> {
     Map<PreferredStyle, Long> countGroupByPreferredStyle();
 
     List<Customer> findTopCustomersByTotalSpent(int limit);
+
+    long countByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
 
 }

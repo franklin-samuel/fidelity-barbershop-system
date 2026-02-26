@@ -22,6 +22,30 @@ public record AnalyticsDataResponse(
         @JsonProperty("retention_rate")
         Double retentionRate,
 
+        @JsonProperty("new_customers_count")
+        Long newCustomersCount,
+
+        @JsonProperty("new_customers_count_previous_period")
+        Long newCustomersCountPreviousPeriod,
+
+        @JsonProperty("new_customers_growth_absolute")
+        Long newCustomersGrowthAbsolute,
+
+        @JsonProperty("average_ticket_current")
+        BigDecimal averageTicketCurrent,
+
+        @JsonProperty("average_ticket_previous")
+        BigDecimal averageTicketPrevious,
+
+        @JsonProperty("average_ticket_growth_absolute")
+        BigDecimal averageTicketGrowthAbsolute,
+
+        @JsonProperty("average_ticket_growth_percentage")
+        BigDecimal averageTicketGrowthPercentage,
+
+        @JsonProperty("revenue_by_weekday")
+        Map<String, BigDecimal> revenueByWeekday,
+
         @JsonProperty("customers_by_age_group")
         Map<String, Long> customersByAgeGroup,
 

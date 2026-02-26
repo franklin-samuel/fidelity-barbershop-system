@@ -18,11 +18,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,6 +32,65 @@ public class GetAnalyticsDataAdapter implements GetAnalyticsDataPort {
     @Override
     public AnalyticsData execute(final Context context) {
 
+        final LocalDateTime now = LocalDateTime.now();
+        final int currentDay = now.getDayOfMonth();
+
+        final LocalDateTime currentMonthStart = now.withDayOfMonth(1).toLocalDate().atStartOfDay();
+        final LocalDateTime currentPeriodEnd = now.toLocalDate().atTime(23, 59, 59);
+
+        final LocalDateTime previousMonthStart = currentMonthStart.minusMonths(1);
+        final LocalDateTime previousPeriodEnd = previousMonthStart.plusDays(currentDay - 1).toLocalDate().atTime(23, 59, 59);
+
+        final LocalDateTime twelveWeeksAgo = now.minusWeeks(12).toLocalDate().atStartOfDay();
+
+        final LocalDateTime sixMonthsAgo = now.minusMonths(6).toLocalDate().atStartOfDay();
+
+        final long newCustomersCount = customerRepository.countByCreatedAtBetween(currentMonthStart, currentPeriodEnd);
+        final long newCustomersCountPrevious = customerRepository.countByCreatedAtBetween(previousMonthStart, previousPeriodEnd);
+        final long newCustomersGrowth = newCustomersCount - newCustomersCountPrevious;
+
+        final BigDecimal currentRevenue = appointmentRepository.sumTotalAmountWithCustomerBetween(currentMonthStart, currentPeriodEnd);
+        final long currentCount = appointmentRepository.countWithCustomerBetween(currentMonthStart, currentPeriodEnd);
+        final BigDecimal averageTicketCurrent = currentCount > 0
+                ? currentRevenue.divide(BigDecimal.valueOf(currentCount), 2, RoundingMode.HALF_UP)
+                : BigDecimal.ZERO;
+
+        final BigDecimal previousRevenue = appointmentRepository.sumTotalAmountWithCustomerBetween(previousMonthStart, previousPeriodEnd);
+        final long previousCount = appointmentRepository.countWithCustomerBetween(previousMonthStart, previousPeriodEnd);
+        final BigDecimal averageTicketPrevious = previousCount > 0
+                ? previousRevenue.divide(BigDecimal.valueOf(previousCount), 2, RoundingMode.HALF_UP)
+                : BigDecimal.ZERO;
+
+        final BigDecimal ticketGrowthAbsolute = averageTicketCurrent.subtract(averageTicketPrevious);
+        final BigDecimal ticketGrowthPercentage = averageTicketPrevious.compareTo(BigDecimal.ZERO) > 0
+                ? ticketGrowthAbsolute.divide(averageTicketPrevious, 4, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(100))
+                .setScale(2, RoundingMode.HALF_UP)
+                : BigDecimal.ZERO;
+
+        final Map<String, BigDecimal> revenueByWeekday = calculateRevenueByWeekday(
+                appointmentRepository.findRevenueByWeekdayFrom(twelveWeeksAgo)
+        );
+
+        final LocalDateTime prevMonthStart = now.minusMonths(1).withDayOfMonth(1).toLocalDate().atStartOfDay();
+        final LocalDateTime prevMonthEnd = now.withDayOfMonth(1).minusDays(1).toLocalDate().atTime(23, 59, 59);
+
+        final long previousMonthCustomers = appointmentRepository.countDistinctCustomersBetween(
+                prevMonthStart.isAfter(sixMonthsAgo) ? prevMonthStart : sixMonthsAgo,
+                prevMonthEnd
+        );
+
+        final long retainedCustomers = appointmentRepository.countRetainedCustomers(
+                prevMonthStart.isAfter(sixMonthsAgo) ? prevMonthStart : sixMonthsAgo,
+                prevMonthEnd,
+                currentMonthStart,
+                currentPeriodEnd
+        );
+
+        final Double retentionRate = previousMonthCustomers > 0
+                ? Math.round((retainedCustomers * 100.0 / previousMonthCustomers) * 100.0) / 100.0
+                : 0.0;
+
         final long totalCustomers = customerRepository.countAll();
         final BigDecimal totalRevenue = appointmentRepository.sumTotalAmount();
 
@@ -44,24 +99,6 @@ public class GetAnalyticsDataAdapter implements GetAnalyticsDataPort {
         final BigDecimal averageTicket = countWithCustomer > 0
                 ? revenueWithCustomer.divide(BigDecimal.valueOf(countWithCustomer), 2, RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
-
-        final LocalDateTime now = LocalDateTime.now();
-        final LocalDateTime startOfCurrentMonth = now.withDayOfMonth(1).toLocalDate().atStartOfDay();
-        final LocalDateTime endOfCurrentMonth = now.toLocalDate().atTime(23, 59, 59);
-        final LocalDateTime startOfPreviousMonth = startOfCurrentMonth.minusMonths(1);
-        final LocalDateTime endOfPreviousMonth = startOfCurrentMonth.minusSeconds(1);
-
-        final long previousMonthCustomers = appointmentRepository
-                .countDistinctCustomersBetween(startOfPreviousMonth, endOfPreviousMonth);
-
-        final long retainedCustomers = appointmentRepository.countRetainedCustomers(
-                startOfPreviousMonth, endOfPreviousMonth,
-                startOfCurrentMonth, endOfCurrentMonth
-        );
-
-        final Double retentionRate = previousMonthCustomers > 0
-                ? Math.round((retainedCustomers * 100.0 / previousMonthCustomers) * 100.0) / 100.0
-                : 0.0;
 
         final Map<Gender, Long> customersByGender = customerRepository.countGroupByGender();
         final Map<ReferralSource, Long> referralCounts = customerRepository.countGroupByReferralSource();
@@ -77,14 +114,19 @@ public class GetAnalyticsDataAdapter implements GetAnalyticsDataPort {
                 appointmentRepository.findRevenueGroupByCustomer().stream()
                         .collect(Collectors.toMap(CustomerAppointmentSummary::customerId, s -> s));
 
-        final List<TopCustomer> topCustomers = customerRepository.findTopCustomersByTotalSpent(10).stream()
-                .map(c -> {
-                    final CustomerAppointmentSummary summary = appointmentSummaryByCustomer.get(c.getId());
-                    final int visits = summary != null ? summary.appointmentCount().intValue() : 0;
+        final List<TopCustomer> topCustomers = appointmentSummaryByCustomer.entrySet().stream()
+                .sorted((a, b) -> b.getValue().totalRevenue().compareTo(a.getValue().totalRevenue()))
+                .limit(10)
+                .map(entry -> {
+                    final Customer customer = allCustomers.stream()
+                            .filter(c -> c.getId().equals(entry.getKey()))
+                            .findFirst()
+                            .orElse(null);
+
                     return TopCustomer.builder()
-                            .name(c.getName())
-                            .totalSpent(c.getTotalSpent())
-                            .visitsCount(visits)
+                            .name(customer != null ? customer.getName() : "Cliente Desconhecido")
+                            .totalSpent(entry.getValue().totalRevenue())
+                            .visitsCount(entry.getValue().appointmentCount().intValue())
                             .build();
                 })
                 .collect(Collectors.toList());
@@ -98,6 +140,14 @@ public class GetAnalyticsDataAdapter implements GetAnalyticsDataPort {
                 .averageTicket(averageTicket)
                 .totalRevenue(totalRevenue)
                 .retentionRate(retentionRate)
+                .newCustomersCount(newCustomersCount)
+                .newCustomersCountPreviousPeriod(newCustomersCountPrevious)
+                .newCustomersGrowthAbsolute(newCustomersGrowth)
+                .averageTicketCurrent(averageTicketCurrent)
+                .averageTicketPrevious(averageTicketPrevious)
+                .averageTicketGrowthAbsolute(ticketGrowthAbsolute)
+                .averageTicketGrowthPercentage(ticketGrowthPercentage)
+                .revenueByWeekday(revenueByWeekday)
                 .customersByAgeGroup(customersByAgeGroup)
                 .customerByGender(customersByGender)
                 .acquisitionChannels(acquisitionChannels)
@@ -107,6 +157,42 @@ public class GetAnalyticsDataAdapter implements GetAnalyticsDataPort {
                 .avgTicketByAge(avgTicketByAge)
                 .channelVsRevenue(channelVsRevenue)
                 .build();
+    }
+
+    private Map<String, BigDecimal> calculateRevenueByWeekday(final List<WeekdayRevenue> weekdayData) {
+        final Map<String, BigDecimal> result = new LinkedHashMap<>();
+
+        result.put("SUNDAY", BigDecimal.ZERO);
+        result.put("MONDAY", BigDecimal.ZERO);
+        result.put("TUESDAY", BigDecimal.ZERO);
+        result.put("WEDNESDAY", BigDecimal.ZERO);
+        result.put("THURSDAY", BigDecimal.ZERO);
+        result.put("FRIDAY", BigDecimal.ZERO);
+        result.put("SATURDAY", BigDecimal.ZERO);
+
+        final int weeksCount = 12;
+
+        for (final WeekdayRevenue data : weekdayData) {
+            final String dayName = getDayName(data.dayOfWeek());
+            final BigDecimal average = data.totalRevenue()
+                    .divide(BigDecimal.valueOf(weeksCount), 2, RoundingMode.HALF_UP);
+            result.put(dayName, average);
+        }
+
+        return result;
+    }
+
+    private String getDayName(final int dayOfWeek) {
+        return switch (dayOfWeek) {
+            case 0 -> "SUNDAY";
+            case 1 -> "MONDAY";
+            case 2 -> "TUESDAY";
+            case 3 -> "WEDNESDAY";
+            case 4 -> "THURSDAY";
+            case 5 -> "FRIDAY";
+            case 6 -> "SATURDAY";
+            default -> "UNKNOWN";
+        };
     }
 
     private List<ChannelData> buildAcquisitionChannels(

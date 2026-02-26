@@ -4,6 +4,7 @@ import app.system.fidelity.core.persistence.AppointmentRepositoryPort;
 import app.system.fidelity.domain.Appointment;
 import app.system.fidelity.domain.BarberRevenueSummary;
 import app.system.fidelity.domain.CustomerAppointmentSummary;
+import app.system.fidelity.domain.WeekdayRevenue;
 import app.system.fidelity.persistence.mapper.AppointmentMapper;
 import app.system.fidelity.persistence.repository.AppointmentRepository;
 import jakarta.transaction.Transactional;
@@ -175,6 +176,28 @@ public class AppointmentRepositoryAdapter implements AppointmentRepositoryPort {
     @Override
     public BigDecimal sumCommissionByBarberIdBetween(final UUID barberId, final LocalDateTime start, final LocalDateTime end) {
         return repository.sumCommissionByBarberIdBetween(barberId, start, end);
+    }
+
+    @Override
+    public List<WeekdayRevenue> findRevenueByWeekdayFrom(final LocalDateTime startDate) {
+        return repository.sumRevenueAndCountByWeekdayFrom(startDate)
+                .stream()
+                .map(row -> new WeekdayRevenue(
+                        ((Number) row[0]).intValue(),
+                        (BigDecimal) row[1],
+                        (Long) row[2]
+                ))
+                .toList();
+    }
+
+    @Override
+    public BigDecimal sumTotalAmountWithCustomerBetween(final LocalDateTime start, final LocalDateTime end) {
+        return repository.sumTotalAmountWithCustomerBetween(start, end);
+    }
+
+    @Override
+    public long countWithCustomerBetween(final LocalDateTime start, final LocalDateTime end) {
+        return repository.countWithCustomerBetween(start, end);
     }
 
 }

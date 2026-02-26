@@ -23,6 +23,17 @@ public class AnalyticsData {
     private BigDecimal totalRevenue;
     private Double retentionRate;
 
+    private Long newCustomersCount;
+    private Long newCustomersCountPreviousPeriod;
+    private Long newCustomersGrowthAbsolute;
+
+    private BigDecimal averageTicketCurrent;
+    private BigDecimal averageTicketPrevious;
+    private BigDecimal averageTicketGrowthAbsolute;
+    private BigDecimal averageTicketGrowthPercentage;
+
+    private Map<String, BigDecimal> revenueByWeekday;
+
     private Map<String, Long> customersByAgeGroup;
     private Map<Gender, Long> customerByGender;
 

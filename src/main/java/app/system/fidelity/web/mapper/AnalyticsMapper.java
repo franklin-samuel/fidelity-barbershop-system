@@ -20,6 +20,17 @@ public class AnalyticsMapper {
                 .totalRevenue(data.getTotalRevenue())
                 .retentionRate(data.getRetentionRate())
 
+                .newCustomersCount(data.getNewCustomersCount())
+                .newCustomersCountPreviousPeriod(data.getNewCustomersCountPreviousPeriod())
+                .newCustomersGrowthAbsolute(data.getNewCustomersGrowthAbsolute())
+
+                .averageTicketCurrent(data.getAverageTicketCurrent())
+                .averageTicketPrevious(data.getAverageTicketPrevious())
+                .averageTicketGrowthAbsolute(data.getAverageTicketGrowthAbsolute())
+                .averageTicketGrowthPercentage(data.getAverageTicketGrowthPercentage())
+
+                .revenueByWeekday(data.getRevenueByWeekday())
+
                 .customersByAgeGroup(data.getCustomersByAgeGroup())
 
                 .customersByGender(convertGenderMapToString(data.getCustomerByGender()))
@@ -92,7 +103,7 @@ public class AnalyticsMapper {
 
         final Map<String, Long> result = new LinkedHashMap<>();
         frequencyMap.forEach((frequency, count) -> {
-            final String key = frequency != null ? frequency.name() : "OT_INFORMED";
+            final String key = frequency != null ? frequency.name() : "NOT_INFORMED";
             result.put(key, count);
         });
 

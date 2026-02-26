@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -38,5 +39,11 @@ public interface CustomerRepository extends JpaRepository<CustomerEntity, UUID> 
 
     @Query("SELECT c FROM CustomerEntity c WHERE c.totalSpent IS NOT NULL AND c.totalSpent > 0 ORDER BY c.totalSpent DESC")
     List<CustomerEntity> findTopByTotalSpentDesc(Pageable pageable);
+
+    @Query("SELECT COUNT(c) FROM CustomerEntity c WHERE c.createdAt BETWEEN :start AND :end")
+    long countByCreatedAtBetween(
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end
+    );
 
 }

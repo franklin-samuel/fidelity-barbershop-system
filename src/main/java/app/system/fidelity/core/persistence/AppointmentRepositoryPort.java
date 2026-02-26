@@ -4,6 +4,7 @@ import app.system.fidelity.core.persistence.commons.BaseRepositoryPort;
 import app.system.fidelity.domain.Appointment;
 import app.system.fidelity.domain.BarberRevenueSummary;
 import app.system.fidelity.domain.CustomerAppointmentSummary;
+import app.system.fidelity.domain.WeekdayRevenue;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -56,5 +57,11 @@ public interface AppointmentRepositoryPort extends BaseRepositoryPort<Appointmen
     BigDecimal sumTipsByBarberIdBetween(final UUID barberId, final LocalDateTime start, final LocalDateTime end);
 
     BigDecimal sumCommissionByBarberIdBetween(final UUID barberId, final LocalDateTime start, final LocalDateTime end);
+
+    List<WeekdayRevenue> findRevenueByWeekdayFrom(final LocalDateTime startDate);
+
+    BigDecimal sumTotalAmountWithCustomerBetween(final LocalDateTime start, final LocalDateTime end);
+
+    long countWithCustomerBetween(final LocalDateTime start, final LocalDateTime end);
 
 }

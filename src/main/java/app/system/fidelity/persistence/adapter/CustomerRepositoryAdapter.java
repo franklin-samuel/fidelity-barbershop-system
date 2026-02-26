@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
@@ -143,6 +144,11 @@ public class CustomerRepositoryAdapter implements CustomerRepositoryPort {
                 .stream()
                 .map(mapper::map)
                 .toList();
+    }
+
+    @Override
+    public long countByCreatedAtBetween(final LocalDateTime start, final LocalDateTime end) {
+        return repository.countByCreatedAtBetween(start, end);
     }
 
 }
