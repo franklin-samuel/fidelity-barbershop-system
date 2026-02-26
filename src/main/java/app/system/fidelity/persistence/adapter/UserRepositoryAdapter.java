@@ -47,7 +47,7 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
 
     @Override
     public List<User> findAllBarbers() {
-        return repository.findByRoleAndDeletedAtIsNotNull(Role.BARBER)
+        return repository.findByRoleAndDeletedAtIsNull(Role.BARBER)
                 .stream()
                 .map(mapper::map)
                 .toList();
@@ -55,7 +55,7 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
 
     @Override
     public List<User> findAllAdmins() {
-        return repository.findByRoleAndDeletedAtIsNotNull(Role.ADMIN)
+        return repository.findByRoleAndDeletedAtIsNull(Role.ADMIN)
                 .stream()
                 .map(mapper::map)
                 .toList();
