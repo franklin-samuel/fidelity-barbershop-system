@@ -1,36 +1,29 @@
 package app.system.fidelity.messaging.service;
 
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.Context;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.YearMonth;
 import java.time.format.TextStyle;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class EmailService {
 
-    private final JavaMailSender mailSender;
+    @Value("${resend.api.key}")
+    private String apiKey;
 
-    private final TemplateEngine templateEngine;
-
-    @Value("${spring.mail.username}")
+    @Value("${resend.from.email:onboarding@resend.dev}")
     private String fromEmail;
 
     @Value("${app.messaging.barbershop-name:Barbearia}")
     private String barbershopName;
+
+    private final RestTemplate restTemplate = new RestTemplate();
 
     public void sendMonthlyReportEmail(
             final List<String> toEmails,
@@ -38,51 +31,85 @@ public class EmailService {
             final YearMonth reportMonth
     ) {
         if (toEmails == null || toEmails.isEmpty()) {
-            log.warn("Nenhum destinatário fornecido para envio de relatório mensal");
+            log.warn("Nenhum destinatário fornecido");
             return;
         }
 
         try {
-            final MimeMessage message = mailSender.createMimeMessage();
-            final MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
-            helper.setFrom(fromEmail);
-            helper.setTo(toEmails.toArray(new String[0]));
-            helper.setSubject(buildSubject(reportMonth));
-
+            final String subject = buildSubject(reportMonth);
             final String htmlContent = buildHtmlContent(reportMonth);
-            helper.setText(htmlContent, true);
-
             final String filename = buildPdfFilename(reportMonth);
-            helper.addAttachment(filename, () -> new java.io.ByteArrayInputStream(pdfAttachment));
 
-            mailSender.send(message);
+            for (String email : toEmails) {
+                sendEmail(email, subject, htmlContent, pdfAttachment, filename);
+            }
 
             log.info("Relatório mensal enviado com sucesso para {} destinatários", toEmails.size());
 
-        } catch (MessagingException e) {
+        } catch (Exception e) {
             log.error("Erro ao enviar email com relatório mensal", e);
-            throw new RuntimeException("Falha ao enviar email com relatório mensal", e);
+            throw new RuntimeException("Falha ao enviar email", e);
+        }
+    }
+
+    private void sendEmail(String to, String subject, String html, byte[] attachment, String filename) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + apiKey);
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("from", fromEmail);
+        body.put("to", Collections.singletonList(to));
+        body.put("subject", subject);
+        body.put("html", html);
+
+        if (attachment != null) {
+            Map<String, String> attachmentData = new HashMap<>();
+            attachmentData.put("filename", filename);
+            attachmentData.put("content", Base64.getEncoder().encodeToString(attachment));
+            body.put("attachments", Collections.singletonList(attachmentData));
+        }
+
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                "https://api.resend.com/emails",
+                HttpMethod.POST,
+                request,
+                String.class
+        );
+
+        if (response.getStatusCode() != HttpStatus.OK) {
+            throw new RuntimeException("Falha ao enviar email via Resend: " + response.getBody());
         }
     }
 
     private String buildSubject(final YearMonth reportMonth) {
         final String monthName = reportMonth.getMonth()
                 .getDisplayName(TextStyle.FULL, new Locale("pt", "BR"));
-        final int year = reportMonth.getYear();
-
         return String.format("[%s] Relatório Mensal - %s/%d",
                 barbershopName,
                 monthName.substring(0, 1).toUpperCase() + monthName.substring(1),
-                year);
+                reportMonth.getYear());
     }
 
     private String buildHtmlContent(final YearMonth reportMonth) {
-        final Context context = new Context();
-        context.setVariable("barbershopName", barbershopName);
-        context.setVariable("monthYear", formatMonthYear(reportMonth));
+        final String monthYear = formatMonthYear(reportMonth);
 
-        return templateEngine.process("monthly-report-email", context);
+        return "<!DOCTYPE html>" +
+                "<html>" +
+                "<body style='font-family: Arial, sans-serif;'>" +
+                "<div style='max-width: 600px; margin: 0 auto; padding: 20px;'>" +
+                "<h1>Relatório Mensal</h1>" +
+                "<p><strong>" + monthYear + "</strong></p>" +
+                "<p>Olá! 👋</p>" +
+                "<p>O relatório mensal de <strong>" + barbershopName + "</strong> está pronto!</p>" +
+                "<p>O PDF está anexado neste email.</p>" +
+                "<hr>" +
+                "<p style='color: #666; font-size: 12px;'>Email automático - " + barbershopName + "</p>" +
+                "</div>" +
+                "</body>" +
+                "</html>";
     }
 
     private String buildPdfFilename(final YearMonth reportMonth) {
