@@ -5,6 +5,7 @@ import app.system.fidelity.core.business.RegisterAppointmentPort;
 import app.system.fidelity.core.persistence.*;
 import app.system.fidelity.domain.*;
 import app.system.fidelity.domain.enums.AppointmentType;
+import app.system.fidelity.domain.enums.Role;
 import app.system.fidelity.domain.exceptions.BusinessException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,7 @@ public class RegisterAppointmentAdapter implements RegisterAppointmentPort {
     private final ServiceRepositoryPort serviceRepository;
     private final ProductRepositoryPort productRepository;
     private final SettingsRepositoryPort settingsRepository;
+    private final UserRepositoryPort userRepositoryPort;
 
     @Override
     public Appointment execute(final Context context) {
@@ -69,6 +71,11 @@ public class RegisterAppointmentAdapter implements RegisterAppointmentPort {
                 .findFirst()
                 .orElseThrow(() -> new BusinessException("Configurações do sistema não encontradas."));
 
+        final User barber = userRepositoryPort.get(barberId)
+                .orElseThrow(() -> new BusinessException("Usuário não encontrado."));
+
+        final boolean isAdmin = barber.getRole() == Role.ADMIN;
+
         UUID customerId = null;
         boolean loyaltyDiscountApplied = false;
         BigDecimal discountAmount = BigDecimal.ZERO;
@@ -103,13 +110,21 @@ public class RegisterAppointmentAdapter implements RegisterAppointmentPort {
 
         final BigDecimal totalAmount = service.getPrice().subtract(discountAmount);
 
-        final BigDecimal commissionAmount = totalAmount
-                .multiply(service.getCommissionPercentage())
-                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+        final BigDecimal commissionAmount;
+        final BigDecimal barberTotal;
+        final BigDecimal barbershopRevenue;
 
-        final BigDecimal barberTotal = commissionAmount.add(tip);
-
-        final BigDecimal barbershopRevenue = totalAmount.subtract(commissionAmount);
+        if (isAdmin) {
+            commissionAmount = BigDecimal.ZERO;
+            barberTotal = BigDecimal.ZERO;
+            barbershopRevenue = totalAmount.add(tip);
+        } else {
+            commissionAmount = totalAmount
+                    .multiply(service.getCommissionPercentage())
+                    .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+            barberTotal = commissionAmount.add(tip);
+            barbershopRevenue = totalAmount.subtract(commissionAmount);
+        }
 
         return appointmentRepository.save(Appointment.builder()
                 .barberId(barberId)
@@ -143,6 +158,11 @@ public class RegisterAppointmentAdapter implements RegisterAppointmentPort {
         final Product product = productRepository.get(form.getProductId())
                 .orElseThrow(() -> new BusinessException("Produto não encontrado."));
 
+        final User barber = userRepositoryPort.get(barberId)
+                .orElseThrow(() -> new BusinessException("Usuário não encontrado."));
+
+        final boolean isAdmin = barber.getRole() == Role.ADMIN;
+
         if (form.getCustomerId() != null) {
             final Customer customer = customerRepository.get(form.getCustomerId())
                     .orElseThrow(() -> new BusinessException("Cliente não encontrado."));
@@ -158,13 +178,21 @@ public class RegisterAppointmentAdapter implements RegisterAppointmentPort {
             customerRepository.save(customer);
         }
 
-        final BigDecimal commissionAmount = product.getPrice()
-                .multiply(product.getCommissionPercentage())
-                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+        final BigDecimal commissionAmount;
+        final BigDecimal barberTotal;
+        final BigDecimal barbershopRevenue;
 
-        final BigDecimal barberTotal = commissionAmount.add(tip);
-
-        final BigDecimal barbershopRevenue = product.getPrice().subtract(commissionAmount);
+        if (isAdmin) {
+            commissionAmount = BigDecimal.ZERO;
+            barberTotal = BigDecimal.ZERO;
+            barbershopRevenue = product.getPrice().add(tip);
+        } else {
+            commissionAmount = product.getPrice()
+                    .multiply(product.getCommissionPercentage())
+                    .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+            barberTotal = commissionAmount.add(tip);
+            barbershopRevenue = product.getPrice().subtract(commissionAmount);
+        }
 
         return appointmentRepository.save(Appointment.builder()
                 .barberId(barberId)
