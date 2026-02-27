@@ -69,7 +69,8 @@ public class GetAnalyticsDataAdapter implements GetAnalyticsDataPort {
                 : BigDecimal.ZERO;
 
         final Map<String, BigDecimal> revenueByWeekday = calculateRevenueByWeekday(
-                appointmentRepository.findRevenueByWeekdayFrom(twelveWeeksAgo)
+                appointmentRepository.findRevenueByWeekdayFrom(twelveWeeksAgo),
+                twelveWeeksAgo
         );
 
         final LocalDateTime prevMonthStart = now.minusMonths(1).withDayOfMonth(1).toLocalDate().atStartOfDay();
@@ -159,7 +160,10 @@ public class GetAnalyticsDataAdapter implements GetAnalyticsDataPort {
                 .build();
     }
 
-    private Map<String, BigDecimal> calculateRevenueByWeekday(final List<WeekdayRevenue> weekdayData) {
+    private Map<String, BigDecimal> calculateRevenueByWeekday(
+            final List<WeekdayRevenue> weekdayData,
+            final LocalDateTime startDate
+    ) {
         final Map<String, BigDecimal> result = new LinkedHashMap<>();
 
         result.put("SUNDAY", BigDecimal.ZERO);
@@ -170,7 +174,27 @@ public class GetAnalyticsDataAdapter implements GetAnalyticsDataPort {
         result.put("FRIDAY", BigDecimal.ZERO);
         result.put("SATURDAY", BigDecimal.ZERO);
 
-        final int weeksCount = 12;
+        if (weekdayData.isEmpty()) {
+            return result;
+        }
+
+        final Optional<LocalDateTime> firstAppointmentOpt = appointmentRepository.findFirstAppointmentDateFrom(startDate);
+        final Optional<LocalDateTime> lastAppointmentOpt = appointmentRepository.findLastAppointmentDateFrom(startDate);
+
+        if (firstAppointmentOpt.isEmpty() || lastAppointmentOpt.isEmpty()) {
+            return result;
+        }
+
+        final LocalDateTime firstAppointmentDate = firstAppointmentOpt.get();
+        final LocalDateTime lastAppointmentDate = lastAppointmentOpt.get();
+
+        final long daysBetween = java.time.temporal.ChronoUnit.DAYS.between(
+                firstAppointmentDate.toLocalDate(),
+                lastAppointmentDate.toLocalDate()
+        );
+        final long weeksInData = Math.max(1, daysBetween / 7);
+
+        final long weeksCount = Math.min(12, weeksInData);
 
         for (final WeekdayRevenue data : weekdayData) {
             final String dayName = getDayName(data.dayOfWeek());

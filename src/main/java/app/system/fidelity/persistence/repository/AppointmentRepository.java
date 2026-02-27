@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface AppointmentRepository extends JpaRepository<AppointmentEntity, UUID> {
@@ -153,5 +154,11 @@ public interface AppointmentRepository extends JpaRepository<AppointmentEntity, 
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end
     );
+
+    @Query("SELECT MIN(a.createdAt) FROM AppointmentEntity a WHERE a.createdAt >= :startDate")
+    Optional<LocalDateTime> findFirstAppointmentDateFrom(@Param("startDate") LocalDateTime startDate);
+
+    @Query("SELECT MAX(a.createdAt) FROM AppointmentEntity a WHERE a.createdAt >= :startDate")
+    Optional<LocalDateTime> findLastAppointmentDateFrom(@Param("startDate") LocalDateTime startDate);
 
 }

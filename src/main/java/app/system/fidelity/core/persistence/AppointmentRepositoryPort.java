@@ -9,6 +9,7 @@ import app.system.fidelity.domain.WeekdayRevenue;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface AppointmentRepositoryPort extends BaseRepositoryPort<Appointment> {
@@ -63,5 +64,9 @@ public interface AppointmentRepositoryPort extends BaseRepositoryPort<Appointmen
     BigDecimal sumTotalAmountWithCustomerBetween(final LocalDateTime start, final LocalDateTime end);
 
     long countWithCustomerBetween(final LocalDateTime start, final LocalDateTime end);
+
+    Optional<LocalDateTime> findFirstAppointmentDateFrom(final LocalDateTime startDate);
+
+    Optional<LocalDateTime> findLastAppointmentDateFrom(final LocalDateTime startDate);
 
 }

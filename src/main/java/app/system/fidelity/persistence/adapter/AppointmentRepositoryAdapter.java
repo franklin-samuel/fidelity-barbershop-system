@@ -200,4 +200,14 @@ public class AppointmentRepositoryAdapter implements AppointmentRepositoryPort {
         return repository.countWithCustomerBetween(start, end);
     }
 
+    @Override
+    public Optional<LocalDateTime> findFirstAppointmentDateFrom(final LocalDateTime startDate) {
+        return repository.findFirstAppointmentDateFrom(startDate);
+    }
+
+    @Override
+    public Optional<LocalDateTime> findLastAppointmentDateFrom(final LocalDateTime startDate) {
+        return repository.findLastAppointmentDateFrom(startDate);
+    }
+
 }
