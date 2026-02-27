@@ -17,10 +17,10 @@ public class EmailService {
     @Value("${resend.api.key}")
     private String apiKey;
 
-    @Value("${resend.from.email:onboarding@resend.dev}")
+    @Value("${resend.from.email}")
     private String fromEmail;
 
-    @Value("${app.messaging.barbershop-name:Barbearia}")
+    @Value("${app.messaging.barbershop-name}")
     private String barbershopName;
 
     private final RestTemplate restTemplate = new RestTemplate();
