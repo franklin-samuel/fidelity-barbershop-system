@@ -68,14 +68,11 @@ public class CreateCustomerAdapter implements CreateCustomerPort {
                 .modifiedAt(LocalDateTime.now())
                 .build());
 
-        try {
-            final Context emailContext = new Context();
-            emailContext.putProperty("customerEmail", savedCustomer.getEmail());
-            emailContext.putProperty("customerName", savedCustomer.getName());
-            sendWelcomeEmailPort.execute(emailContext);
-        } catch (Exception e) {
-            // Apenas loga
-        }
+
+        final Context emailContext = new Context();
+        emailContext.putProperty("customerEmail", savedCustomer.getEmail());
+        emailContext.putProperty("customerName", savedCustomer.getName());
+        sendWelcomeEmailPort.execute(emailContext);
 
         return savedCustomer;
     }
