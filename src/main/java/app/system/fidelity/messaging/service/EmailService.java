@@ -1,5 +1,6 @@
 package app.system.fidelity.messaging.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -12,6 +13,7 @@ import java.util.*;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class EmailService {
 
     @Value("${resend.api.key}")
@@ -24,6 +26,31 @@ public class EmailService {
     private String barbershopName;
 
     private final RestTemplate restTemplate = new RestTemplate();
+    private final TemplateService templateService;
+
+    public void sendWelcomeEmail(
+            final String toEmail,
+            final String customerName,
+            final int requiredCuts
+    ) {
+        try {
+            final String subject = String.format("Bem-vindo à %s! 🎉", barbershopName);
+
+            final Map<String, Object> templateVariables = new HashMap<>();
+            templateVariables.put("customerName", customerName);
+            templateVariables.put("requiredCuts", requiredCuts);
+            templateVariables.put("barbershopName", barbershopName);
+
+            final String htmlContent = templateService.processTemplate("welcome-email", templateVariables);
+
+            sendEmail(toEmail, subject, htmlContent, null, null);
+
+            log.info("Email de boas-vindas enviado com sucesso para {}", toEmail);
+
+        } catch (Exception e) {
+            log.error("Erro ao enviar email de boas-vindas para {}: {}", toEmail, e.getMessage(), e);
+        }
+    }
 
     public void sendMonthlyReportEmail(
             final List<String> toEmails,
@@ -31,13 +58,13 @@ public class EmailService {
             final YearMonth reportMonth
     ) {
         if (toEmails == null || toEmails.isEmpty()) {
-            log.warn("Nenhum destinatário fornecido");
+            log.warn("Nenhum destinatário fornecido para relatório mensal");
             return;
         }
 
         try {
-            final String subject = buildSubject(reportMonth);
-            final String htmlContent = buildHtmlContent(reportMonth);
+            final String subject = buildMonthlyReportSubject(reportMonth);
+            final String htmlContent = buildMonthlyReportHtml(reportMonth);
             final String filename = buildPdfFilename(reportMonth);
 
             for (String email : toEmails) {
@@ -52,27 +79,33 @@ public class EmailService {
         }
     }
 
-    private void sendEmail(String to, String subject, String html, byte[] attachment, String filename) {
-        HttpHeaders headers = new HttpHeaders();
+    private void sendEmail(
+            final String to,
+            final String subject,
+            final String html,
+            final byte[] attachment,
+            final String filename
+    ) {
+        final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Authorization", "Bearer " + apiKey);
 
-        Map<String, Object> body = new HashMap<>();
+        final Map<String, Object> body = new HashMap<>();
         body.put("from", fromEmail);
         body.put("to", Collections.singletonList(to));
         body.put("subject", subject);
         body.put("html", html);
 
-        if (attachment != null) {
-            Map<String, String> attachmentData = new HashMap<>();
+        if (attachment != null && filename != null) {
+            final Map<String, String> attachmentData = new HashMap<>();
             attachmentData.put("filename", filename);
             attachmentData.put("content", Base64.getEncoder().encodeToString(attachment));
             body.put("attachments", Collections.singletonList(attachmentData));
         }
 
-        HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+        final HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
 
-        ResponseEntity<String> response = restTemplate.exchange(
+        final ResponseEntity<String> response = restTemplate.exchange(
                 "https://api.resend.com/emails",
                 HttpMethod.POST,
                 request,
@@ -84,7 +117,7 @@ public class EmailService {
         }
     }
 
-    private String buildSubject(final YearMonth reportMonth) {
+    private String buildMonthlyReportSubject(final YearMonth reportMonth) {
         final String monthName = reportMonth.getMonth()
                 .getDisplayName(TextStyle.FULL, new Locale("pt", "BR"));
         return String.format("[%s] Relatório Mensal - %s/%d",
@@ -93,23 +126,12 @@ public class EmailService {
                 reportMonth.getYear());
     }
 
-    private String buildHtmlContent(final YearMonth reportMonth) {
-        final String monthYear = formatMonthYear(reportMonth);
+    private String buildMonthlyReportHtml(final YearMonth reportMonth) {
+        final Map<String, Object> templateVariables = new HashMap<>();
+        templateVariables.put("monthYear", formatMonthYear(reportMonth));
+        templateVariables.put("barbershopName", barbershopName);
 
-        return "<!DOCTYPE html>" +
-                "<html>" +
-                "<body style='font-family: Arial, sans-serif;'>" +
-                "<div style='max-width: 600px; margin: 0 auto; padding: 20px;'>" +
-                "<h1>Relatório Mensal</h1>" +
-                "<p><strong>" + monthYear + "</strong></p>" +
-                "<p>Olá! 👋</p>" +
-                "<p>O relatório mensal de <strong>" + barbershopName + "</strong> está pronto!</p>" +
-                "<p>O PDF está anexado neste email.</p>" +
-                "<hr>" +
-                "<p style='color: #666; font-size: 12px;'>Email automático - " + barbershopName + "</p>" +
-                "</div>" +
-                "</body>" +
-                "</html>";
+        return templateService.processTemplate("monthly-report-email", templateVariables);
     }
 
     private String buildPdfFilename(final YearMonth reportMonth) {

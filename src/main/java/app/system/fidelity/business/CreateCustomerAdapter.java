@@ -2,6 +2,7 @@ package app.system.fidelity.business;
 
 import app.system.fidelity.core.Context;
 import app.system.fidelity.core.business.CreateCustomerPort;
+import app.system.fidelity.core.messaging.SendWelcomeEmailPort;
 import app.system.fidelity.core.persistence.CustomerRepositoryPort;
 import app.system.fidelity.domain.Customer;
 import app.system.fidelity.domain.exceptions.BusinessException;
@@ -18,6 +19,7 @@ import java.time.LocalDateTime;
 public class CreateCustomerAdapter implements CreateCustomerPort {
 
     private final CustomerRepositoryPort repository;
+    private final SendWelcomeEmailPort sendWelcomeEmailPort;
 
     @Override
     public Customer execute(final Context context) {
@@ -40,7 +42,7 @@ public class CreateCustomerAdapter implements CreateCustomerPort {
             throw new BusinessException("Já existe um cliente com esse email.");
         }
 
-        return repository.save(Customer.builder()
+        final Customer savedCustomer = repository.save(Customer.builder()
                 .name(customer.getName())
                 .email(customer.getEmail())
                 .phoneNumber(customer.getPhoneNumber())
@@ -65,5 +67,16 @@ public class CreateCustomerAdapter implements CreateCustomerPort {
                 .createdAt(LocalDateTime.now())
                 .modifiedAt(LocalDateTime.now())
                 .build());
+
+        try {
+            final Context emailContext = new Context();
+            emailContext.putProperty("customerEmail", savedCustomer.getEmail());
+            emailContext.putProperty("customerName", savedCustomer.getName());
+            sendWelcomeEmailPort.execute(emailContext);
+        } catch (Exception e) {
+            // Apenas loga
+        }
+
+        return savedCustomer;
     }
 }
