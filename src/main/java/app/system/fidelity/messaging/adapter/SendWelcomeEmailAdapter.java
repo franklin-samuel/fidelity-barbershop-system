@@ -41,7 +41,7 @@ public class SendWelcomeEmailAdapter implements SendWelcomeEmailPort {
                     .findFirst()
                     .orElse(null);
 
-            final int requiredCuts = settings != null ? settings.getHaircutsForFree() : 4;
+            final int requiredCuts = settings != null ? settings.getHaircutsForFree() + 1 : 5;
 
             log.info("Iniciando envio de email de boas-vindas para {} ({})", customerName, customerEmail);
 
