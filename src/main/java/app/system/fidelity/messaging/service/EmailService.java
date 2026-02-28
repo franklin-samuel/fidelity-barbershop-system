@@ -41,9 +41,8 @@ public class EmailService {
             templateVariables.put("requiredCuts", requiredCuts);
             templateVariables.put("barbershopName", barbershopName);
 
-            // final String htmlContent = templateService.processTemplate("welcome-email", templateVariables);
-            final String htmlContent = "<h1>Teste</h1>";
-            
+            final String htmlContent = templateService.processTemplate("welcome-email", templateVariables);
+
             sendEmail(toEmail, subject, htmlContent, null, null);
 
             log.info("Email de boas-vindas enviado com sucesso para {}", toEmail);
