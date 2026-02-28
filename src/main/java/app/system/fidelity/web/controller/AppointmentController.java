@@ -1,19 +1,24 @@
 package app.system.fidelity.web.controller;
 
 import app.system.fidelity.core.Context;
-import app.system.fidelity.core.business.GetAppointmentDetailsPort;
+import app.system.fidelity.core.business.GetAppointmentDetailsPagedPort;
 import app.system.fidelity.core.business.RegisterAppointmentPort;
 import app.system.fidelity.core.business.UpdateAppointmentPort;
 import app.system.fidelity.domain.Appointment;
 import app.system.fidelity.domain.AppointmentDetail;
+import app.system.fidelity.domain.AppointmentFilterList;
 import app.system.fidelity.domain.enums.AppointmentType;
 import app.system.fidelity.domain.enums.Role;
+import app.system.fidelity.domain.pagination.PageObject;
+import app.system.fidelity.domain.pagination.Paging;
 import app.system.fidelity.security.model.CustomUserDetails;
 import app.system.fidelity.web.commons.ApiResponse;
 import app.system.fidelity.web.mapper.AppointmentMapper;
+import app.system.fidelity.web.model.request.AppointmentFilters;
 import app.system.fidelity.web.model.request.AppointmentRequest;
 import app.system.fidelity.web.model.request.AppointmentUpdateRequest;
 import app.system.fidelity.web.model.response.AppointmentDetailResponse;
+import app.system.fidelity.web.model.response.AppointmentPageResponse;
 import app.system.fidelity.web.model.response.AppointmentResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,28 +37,61 @@ public class AppointmentController {
 
     private final RegisterAppointmentPort registerAppointmentPort;
     private final UpdateAppointmentPort updateAppointmentPort;
-    private final GetAppointmentDetailsPort getAppointmentDetailsPort;
+    private final GetAppointmentDetailsPagedPort getAppointmentDetailsPagedPort;
     private final AppointmentMapper mapper;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<AppointmentDetailResponse>>> list(
+    public ResponseEntity<ApiResponse<AppointmentPageResponse>> listPaged(
+            final AppointmentFilters filters,
+            @RequestParam(defaultValue = "0") final int page,
+            @RequestParam(defaultValue = "30") final int size,
+            @RequestParam(defaultValue = "createdAt") final String sort,
+            @RequestParam(defaultValue = "desc") final String direction,
             @AuthenticationPrincipal final CustomUserDetails userDetails
     ) {
         final boolean isAdmin = userDetails.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals(Role.ADMIN.name()));
 
-        final Context context = new Context();
-        if (!isAdmin) {
-            context.putProperty("barberId", userDetails.getUserId());
-        }
+        final UUID effectiveBarberId = !isAdmin && filters.getBarberId() == null
+                ? userDetails.getUserId()
+                : filters.getBarberId();
 
-        final List<AppointmentDetail> appointmentDetails = getAppointmentDetailsPort.execute(context);
+        final AppointmentFilterList appointmentFilters = AppointmentFilterList.builder()
+                .startDate(filters.getStartDate())
+                .endDate(filters.getEndDate())
+                .type(filters.getType())
+                .barberId(effectiveBarberId)
+                .customerId(filters.getCustomerId())
+                .paymentMethod(filters.getPaymentMethod())
+                .searchAnything(filters.getSearchAnything())
+                .paging(Paging.builder()
+                        .page(page)
+                        .size(size)
+                        .sort(sort)
+                        .direction(direction)
+                        .build())
+                .build();
 
-        final List<AppointmentDetailResponse> responses = appointmentDetails.stream()
+        final Context context = new Context(appointmentFilters);
+        final PageObject<AppointmentDetail> pageResult = getAppointmentDetailsPagedPort.execute(context);
+
+        final List<AppointmentDetailResponse> content = pageResult.getContent().stream()
                 .map(detail -> mapper.mapToDetailResponse(detail, isAdmin))
                 .toList();
 
-        return ResponseEntity.ok(ApiResponse.success(responses));
+        final AppointmentPageResponse response = AppointmentPageResponse.builder()
+                .content(content)
+                .page(pageResult.getPage())
+                .size(pageResult.getSize())
+                .totalElements(pageResult.getTotalElements())
+                .totalPages(pageResult.getTotalPages())
+                .sort(pageResult.getSort())
+                .direction(pageResult.getDirection())
+                .hasNext(pageResult.isHasNext())
+                .hasPrevious(pageResult.isHasPrevious())
+                .build();
+
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @PostMapping("/service")

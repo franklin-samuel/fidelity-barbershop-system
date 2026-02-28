@@ -1,10 +1,13 @@
 package app.system.fidelity.persistence.repository;
 
 import app.system.fidelity.persistence.model.AppointmentEntity;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.lang.NonNull;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -161,4 +164,6 @@ public interface AppointmentRepository extends JpaRepository<AppointmentEntity, 
     @Query("SELECT MAX(a.createdAt) FROM AppointmentEntity a WHERE a.createdAt >= :startDate")
     Optional<LocalDateTime> findLastAppointmentDateFrom(@Param("startDate") LocalDateTime startDate);
 
+    @NonNull
+    Page<AppointmentEntity> findAll(@NonNull final Specification<AppointmentEntity> spec, @NonNull final Pageable pageable);
 }

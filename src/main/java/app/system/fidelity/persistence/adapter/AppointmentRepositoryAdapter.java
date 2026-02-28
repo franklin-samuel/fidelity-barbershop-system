@@ -2,14 +2,23 @@ package app.system.fidelity.persistence.adapter;
 
 import app.system.fidelity.core.persistence.AppointmentRepositoryPort;
 import app.system.fidelity.domain.Appointment;
+import app.system.fidelity.domain.AppointmentFilterList;
 import app.system.fidelity.domain.BarberRevenueSummary;
 import app.system.fidelity.domain.CustomerAppointmentSummary;
 import app.system.fidelity.domain.WeekdayRevenue;
+import app.system.fidelity.domain.pagination.PageObject;
+import app.system.fidelity.domain.pagination.Paging;
 import app.system.fidelity.persistence.mapper.AppointmentMapper;
+import app.system.fidelity.persistence.model.AppointmentEntity;
+import app.system.fidelity.persistence.pagination.PageObjectMapper;
 import app.system.fidelity.persistence.repository.AppointmentRepository;
+import app.system.fidelity.persistence.spec.AppointmentSpecifications;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
@@ -208,6 +217,29 @@ public class AppointmentRepositoryAdapter implements AppointmentRepositoryPort {
     @Override
     public Optional<LocalDateTime> findLastAppointmentDateFrom(final LocalDateTime startDate) {
         return repository.findLastAppointmentDateFrom(startDate);
+    }
+
+    @Override
+    public PageObject<Appointment> findByFilters(final AppointmentFilterList filters, final Paging paging) {
+        final Specification<AppointmentEntity> spec = Specification
+                .where(AppointmentSpecifications.startDateGreaterThanOrEqual(filters.getStartDate()))
+                .and(AppointmentSpecifications.endDateLessThanOrEqual(filters.getEndDate()))
+                .and(AppointmentSpecifications.typeEquals(filters.getType()))
+                .and(AppointmentSpecifications.barberIdEquals(filters.getBarberId()))
+                .and(AppointmentSpecifications.customerIdEquals(filters.getCustomerId()))
+                .and(AppointmentSpecifications.paymentMethodEquals(filters.getPaymentMethod()))
+                .and(AppointmentSpecifications.searchAnything(filters.getSearchAnything()));
+
+        final Page<AppointmentEntity> appointmentEntityPage = repository.findAll(
+                spec,
+                PageRequest.of(
+                        paging.getPage(),
+                        paging.getSize(),
+                        Sort.by(Sort.Direction.fromString(paging.getDirection()), paging.getSort())
+                )
+        );
+
+        return PageObjectMapper.map(appointmentEntityPage, mapper::map);
     }
 
 }

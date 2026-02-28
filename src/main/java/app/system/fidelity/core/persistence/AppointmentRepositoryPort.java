@@ -2,9 +2,12 @@ package app.system.fidelity.core.persistence;
 
 import app.system.fidelity.core.persistence.commons.BaseRepositoryPort;
 import app.system.fidelity.domain.Appointment;
+import app.system.fidelity.domain.AppointmentFilterList;
 import app.system.fidelity.domain.BarberRevenueSummary;
 import app.system.fidelity.domain.CustomerAppointmentSummary;
 import app.system.fidelity.domain.WeekdayRevenue;
+import app.system.fidelity.domain.pagination.PageObject;
+import app.system.fidelity.domain.pagination.Paging;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -68,5 +71,7 @@ public interface AppointmentRepositoryPort extends BaseRepositoryPort<Appointmen
     Optional<LocalDateTime> findFirstAppointmentDateFrom(final LocalDateTime startDate);
 
     Optional<LocalDateTime> findLastAppointmentDateFrom(final LocalDateTime startDate);
+
+    PageObject<Appointment> findByFilters(final AppointmentFilterList filters, final Paging paging);
 
 }
