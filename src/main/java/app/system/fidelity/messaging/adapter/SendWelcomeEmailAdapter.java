@@ -10,6 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.util.concurrent.CompletableFuture;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -20,19 +22,19 @@ public class SendWelcomeEmailAdapter implements SendWelcomeEmailPort {
 
     @Async("emailTaskExecutor")
     @Override
-    public Void execute(final Context context) {
+    public CompletableFuture<Void> execute(final Context context) {
         try {
             final String customerEmail = context.getProperty("customerEmail", String.class);
             final String customerName = context.getProperty("customerName", String.class);
 
             if (customerEmail == null || customerEmail.isBlank()) {
                 log.warn("Email do cliente não fornecido, pulando envio de boas-vindas");
-                return null;
+                return CompletableFuture.completedFuture(null);
             }
 
             if (customerName == null || customerName.isBlank()) {
                 log.warn("Nome do cliente não fornecido, pulando envio de boas-vindas");
-                return null;
+                return CompletableFuture.completedFuture(null);
             }
 
             final Settings settings = settingsRepository.findAll().stream()
@@ -47,11 +49,11 @@ public class SendWelcomeEmailAdapter implements SendWelcomeEmailPort {
 
             log.info("Email de boas-vindas processado para {}", customerEmail);
 
-            return null;
+            return CompletableFuture.completedFuture(null);
 
         } catch (Exception e) {
             log.error("Erro ao processar envio de email de boas-vindas", e);
-            return null;
+            return CompletableFuture.completedFuture(null);
         }
     }
 }
