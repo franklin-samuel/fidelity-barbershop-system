@@ -93,7 +93,7 @@ public class GetAnalyticsDataAdapter implements GetAnalyticsDataPort {
                 : 0.0;
 
         final long totalCustomers = customerRepository.countAll();
-        final BigDecimal totalRevenue = appointmentRepository.sumTotalAmount();
+        final BigDecimal totalRevenue = appointmentRepository.sumTotalAmountBetween(currentMonthStart, currentPeriodEnd);
 
         final long countWithCustomer = appointmentRepository.countWithCustomer();
         final BigDecimal revenueWithCustomer = appointmentRepository.sumTotalAmountWithCustomer();

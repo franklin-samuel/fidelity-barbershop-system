@@ -99,6 +99,11 @@ public class AppointmentRepositoryAdapter implements AppointmentRepositoryPort {
     }
 
     @Override
+    public BigDecimal sumTotalAmountBetween(final LocalDateTime start, final LocalDateTime end) {
+        return repository.sumTotalAmountBetween(start, end);
+    }
+
+    @Override
     public BigDecimal sumTotalAmountWithCustomer() {
         return repository.sumTotalAmountWithCustomer();
     }

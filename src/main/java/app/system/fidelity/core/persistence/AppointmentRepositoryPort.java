@@ -29,6 +29,8 @@ public interface AppointmentRepositoryPort extends BaseRepositoryPort<Appointmen
 
     BigDecimal sumTotalAmount();
 
+    BigDecimal sumTotalAmountBetween(final LocalDateTime start, final LocalDateTime end);
+
     BigDecimal sumTotalAmountWithCustomer();
 
     long countWithCustomer();

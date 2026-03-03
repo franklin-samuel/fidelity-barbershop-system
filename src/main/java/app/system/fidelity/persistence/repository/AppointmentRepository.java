@@ -30,6 +30,13 @@ public interface AppointmentRepository extends JpaRepository<AppointmentEntity, 
     @Query("SELECT COALESCE(SUM(a.totalAmount), 0) FROM AppointmentEntity a")
     BigDecimal sumTotalAmount();
 
+    @Query("SELECT COALESCE(SUM(a.totalAmount), 0) FROM AppointmentEntity a " +
+            "WHERE a.createdAt BETWEEN :start AND :end")
+    BigDecimal sumTotalAmountBetween(
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end
+    );
+
     @Query("SELECT COALESCE(SUM(a.totalAmount), 0) FROM AppointmentEntity a WHERE a.customerId IS NOT NULL")
     BigDecimal sumTotalAmountWithCustomer();
 
