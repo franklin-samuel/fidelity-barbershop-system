@@ -17,10 +17,11 @@ public interface CustomerRepository extends JpaRepository<CustomerEntity, UUID> 
 
     boolean existsByEmail(final String email);
 
-    @Query("SELECT c FROM CustomerEntity c WHERE " +
-            "(LOWER(c.name) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
-            "LOWER(c.email) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
-            "LOWER(c.phoneNumber) LIKE LOWER(CONCAT('%', :searchTerm, '%')))")
+    @Query(value = "SELECT c.* FROM customers c WHERE " +
+            "(UNACCENT(LOWER(c.name)) LIKE UNACCENT(LOWER(CONCAT('%', :searchTerm, '%'))) OR " +
+            "UNACCENT(LOWER(c.email)) LIKE UNACCENT(LOWER(CONCAT('%', :searchTerm, '%'))) OR " +
+            "LOWER(c.phone_number) LIKE LOWER(CONCAT('%', :searchTerm, '%')))",
+            nativeQuery = true)
     List<CustomerEntity> searchByNameOrEmailOrPhoneNumber(@Param("searchTerm") String searchTerm);
 
     long countByServiceCountGreaterThanEqual(Integer haircutCount);
