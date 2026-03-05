@@ -1,5 +1,8 @@
 FROM eclipse-temurin:21-jdk-jammy
 
+ENV TZ=America/Fortaleza
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 WORKDIR /app
 
 COPY target/fidelity-0.0.1-SNAPSHOT.jar app.jar
@@ -16,4 +19,4 @@ ENV SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD} \
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Duser.timezone=America/Fortaleza", "-jar", "app.jar"]
