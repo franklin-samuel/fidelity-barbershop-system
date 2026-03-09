@@ -64,10 +64,10 @@ public interface AppointmentRepository extends JpaRepository<AppointmentEntity, 
             @Param("end") LocalDateTime end
     );
 
-    @Query("SELECT a.barberId, SUM(a.barbershopRevenue), COUNT(a) FROM AppointmentEntity a " +
+    @Query("SELECT a.barberId, SUM(a.totalAmount), COUNT(a) FROM AppointmentEntity a " +
             "WHERE a.createdAt BETWEEN :start AND :end " +
             "GROUP BY a.barberId " +
-            "ORDER BY SUM(a.barbershopRevenue) DESC")
+            "ORDER BY SUM(a.totalAmount) DESC")
     List<Object[]> findTopBarbersByRevenueBetween(
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end,
