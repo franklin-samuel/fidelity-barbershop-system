@@ -46,6 +46,7 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.GET, "/appointment/**").hasAnyAuthority("ADMIN", "BARBER")
                         .requestMatchers(HttpMethod.POST, "/appointment/**").hasAnyAuthority("ADMIN", "BARBER")
                         .requestMatchers(HttpMethod.PATCH, "/appointment/**").hasAnyAuthority("ADMIN", "BARBER")
+                        .requestMatchers(HttpMethod.DELETE, "/appointment/**").hasAnyAuthority("ADMIN", "BARBER")
 
                         // Barber
                         .requestMatchers(HttpMethod.GET, "/barber/**").hasAuthority("ADMIN")
