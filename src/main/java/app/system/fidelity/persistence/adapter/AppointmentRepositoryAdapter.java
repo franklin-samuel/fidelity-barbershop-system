@@ -51,6 +51,11 @@ public class AppointmentRepositoryAdapter implements AppointmentRepositoryPort {
     }
 
     @Override
+    public void delete(final UUID id) {
+        repository.deleteById(id);
+    }
+
+    @Override
     public List<Appointment> findAll() {
         return of(repository.findAllByOrderByCreatedAtDesc())
                 .orElse(new ArrayList<>())

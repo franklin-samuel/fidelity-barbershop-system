@@ -1,6 +1,7 @@
 package app.system.fidelity.web.controller;
 
 import app.system.fidelity.core.Context;
+import app.system.fidelity.core.business.DeleteAppointmentPort;
 import app.system.fidelity.core.business.GetAppointmentDetailsPagedPort;
 import app.system.fidelity.core.business.RegisterAppointmentPort;
 import app.system.fidelity.core.business.UpdateAppointmentPort;
@@ -37,6 +38,7 @@ public class AppointmentController {
 
     private final RegisterAppointmentPort registerAppointmentPort;
     private final UpdateAppointmentPort updateAppointmentPort;
+    private final DeleteAppointmentPort deleteAppointmentPort;
     private final GetAppointmentDetailsPagedPort getAppointmentDetailsPagedPort;
     private final AppointmentMapper mapper;
 
@@ -160,5 +162,14 @@ public class AppointmentController {
         final AppointmentResponse response = mapper.mapToResponse(updatedAppointment);
 
         return ResponseEntity.ok(ApiResponse.success(response, "Cliente vinculado ao atendimento com sucesso"));
+    }
+
+    @PostMapping("/{id}/delete")
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable final UUID id) {
+        final Context context = new Context(id);
+
+        deleteAppointmentPort.execute(context);
+
+        return ResponseEntity.ok(ApiResponse.success("Atendimento deletado com sucesso"));
     }
 }

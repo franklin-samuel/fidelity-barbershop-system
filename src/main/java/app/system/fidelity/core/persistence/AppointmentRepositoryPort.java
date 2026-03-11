@@ -17,6 +17,8 @@ import java.util.UUID;
 
 public interface AppointmentRepositoryPort extends BaseRepositoryPort<Appointment> {
 
+    void delete(final UUID appointmentId);
+
     List<Appointment> findByBarberId(final UUID barberId);
 
     List<Appointment> findByCreatedAtBetween(final LocalDateTime start, final LocalDateTime end);
