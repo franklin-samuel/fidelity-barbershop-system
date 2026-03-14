@@ -24,7 +24,7 @@ public class UpdateCustomerAdapter implements UpdateCustomerPort {
         Customer customerForm = context.getData(Customer.class);
 
         if (customerForm == null) {
-            throw new BusinessException("Por favor, insira os dados do cliente");
+            throw new BusinessException("Por favor, insira os dados do cliente.");
         }
 
         Customer customer = repository.get(customerForm.getId())
