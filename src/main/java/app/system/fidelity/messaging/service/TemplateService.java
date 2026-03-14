@@ -36,4 +36,24 @@ public class TemplateService {
             throw new RuntimeException("Falha ao processar template de email: " + templateName, e);
         }
     }
+
+    public String formatInsightsToHtml(final String insights) {
+        if (insights == null || insights.isBlank()) {
+            return null;
+        }
+
+        final String[] paragraphs = insights.split("\n\n");
+        final StringBuilder html = new StringBuilder();
+
+        for (final String paragraph : paragraphs) {
+            if (paragraph.trim().isEmpty()) {
+                continue;
+            }
+            html.append("<p class=\"insights-text\">")
+                    .append(paragraph.trim().replace("\n", "<br>"))
+                    .append("</p>\n");
+        }
+
+        return html.toString();
+    }
 }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relatório Mensal</title>
+    <title>Análise Mensal - Insights Estratégicos</title>
     <style>
         body {
             margin: 0;
@@ -25,23 +25,6 @@
             background: linear-gradient(135deg, #18181b 0%, #27272a 100%);
             padding: 48px 32px;
             text-align: center;
-        }
-        .logo {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 56px;
-            height: 56px;
-            background-color: #f59e0b;
-            border-radius: 12px;
-            margin-bottom: 16px;
-        }
-        .logo svg {
-            width: 32px;
-            height: 32px;
-            fill: none;
-            stroke: #ffffff;
-            stroke-width: 2;
         }
         .header h1 {
             margin: 0;
@@ -66,88 +49,70 @@
             margin: 0 0 24px 0;
             font-weight: 600;
         }
-        .text {
-            font-size: 16px;
-            color: #3f3f46;
-            margin: 0 0 20px 0;
-        }
-        .report-card {
+        .insights-section {
             background-color: #fafafa;
-            border: 1px solid #e4e4e7;
-            border-radius: 12px;
+            border-left: 4px solid #f59e0b;
+            border-radius: 8px;
             padding: 24px;
             margin: 24px 0;
         }
-        .report-card-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid #e4e4e7;
-        }
-        .report-card-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .report-card-icon svg {
-            width: 24px;
-            height: 24px;
-            fill: none;
-            stroke: #ffffff;
-            stroke-width: 2;
-        }
-        .report-card h3 {
-            margin: 0;
+        .insights-section h3 {
+            margin: 0 0 16px 0;
             color: #18181b;
             font-size: 18px;
             font-weight: 600;
         }
-        .attachment-info {
-            display: flex;
+        .insights-text {
+            font-size: 15px;
+            color: #3f3f46;
+            line-height: 1.8;
+            margin: 0 0 16px 0;
+        }
+        .insights-text:last-child {
+            margin-bottom: 0;
+        }
+        .ai-badge {
+            display: inline-flex;
             align-items: center;
-            gap: 12px;
-            padding: 16px;
+            gap: 6px;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: #18181b;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        .metrics-summary {
             background-color: #ffffff;
             border: 1px solid #e4e4e7;
             border-radius: 8px;
+            padding: 20px;
+            margin: 24px 0;
         }
-        .attachment-icon {
-            width: 48px;
-            height: 48px;
-            background-color: #f59e0b;
-            border-radius: 8px;
+        .metric-row {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #f4f4f5;
         }
-        .attachment-icon svg {
-            width: 28px;
-            height: 28px;
-            fill: none;
-            stroke: #ffffff;
-            stroke-width: 2;
+        .metric-row:last-child {
+            border-bottom: none;
         }
-        .attachment-details {
-            flex: 1;
-        }
-        .attachment-details p {
-            margin: 0;
-            color: #18181b;
-            font-size: 15px;
-            font-weight: 600;
-        }
-        .attachment-details span {
-            display: block;
-            margin-top: 4px;
+        .metric-label {
+            font-size: 14px;
             color: #71717a;
-            font-size: 13px;
+        }
+        .metric-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #18181b;
+        }
+        .metric-value.positive {
+            color: #16a34a;
+        }
+        .metric-value.negative {
+            color: #dc2626;
         }
         .footer {
             background-color: #fafafa;
@@ -178,7 +143,7 @@
             .content {
                 padding: 32px 24px;
             }
-            .report-card {
+            .insights-section {
                 padding: 20px;
             }
         }
@@ -188,7 +153,7 @@
 <div class="container">
     <!-- Header -->
     <div class="header">
-        <h1>Relatório Mensal</h1>
+        <h1>Análise Estratégica Mensal</h1>
         <p th:text="${monthYear}">Dezembro de 2024</p>
     </div>
 
@@ -198,53 +163,76 @@
             Olá! 📊
         </p>
 
-        <p class="text">
-            Seu relatório mensal de <strong th:text="${monthYear}">Dezembro de 2024</strong>
-            está disponível para análise.
+        <p style="margin: 0 0 20px 0; font-size: 16px; color: #3f3f46; line-height: 1.6;">
+            Aqui está a análise completa do mês de <strong th:text="${monthYear}">Dezembro de 2024</strong>
+            com insights estratégicos gerados por IA para ajudar na tomada de decisão.
         </p>
 
-        <!-- Report Card -->
-        <div class="report-card">
-            <div class="report-card-header">
-                <h3>Relatório em Anexo</h3>
+        <!-- Resumo Rápido de Métricas -->
+        <div class="metrics-summary">
+            <div class="metric-row">
+                <span class="metric-label">Receita Total</span>
+                <span class="metric-value" th:text="${totalRevenue}">R$ 15.450,00</span>
             </div>
-
-            <div class="attachment-info">
-                <div class="attachment-details">
-                    <p>relatorio-mensal.pdf</p>
-                    <span>Documento PDF · Anexado</span>
-                </div>
+            <div class="metric-row">
+                <span class="metric-label">Crescimento vs Mês Anterior</span>
+                <span class="metric-value"
+                      th:classappend="${isGrowthPositive} ? 'positive' : 'negative'"
+                      th:text="${revenueGrowth}">+12,5%</span>
             </div>
-            </p>
-
-            <p class="text">
-                O relatório contém informações detalhadas sobre:
-            </p>
-
-            <ul style="margin: 0 0 20px 0; padding-left: 24px; color: #3f3f46; font-size: 15px;">
-                <li style="margin-bottom: 8px;">Faturamento do mês</li>
-                <li style="margin-bottom: 8px;">Atendimentos realizados</li>
-                <li style="margin-bottom: 8px;">Desempenho da equipe</li>
-                <li style="margin-bottom: 8px;">Análise de clientes</li>
-            </ul>
-
-            <p class="text">
-                Em caso de dúvidas, estamos à disposição!
-            </p>
-
-            <p class="text">
-                Atenciosamente,<br>
-                <strong>Equipe <span th:text="${barbershopName}">Na Garagem Barbearia</span></strong>
-            </p>
+            <div class="metric-row">
+                <span class="metric-label">Total de Atendimentos</span>
+                <span class="metric-value" th:text="${totalAppointments}">245</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">Ticket Médio</span>
+                <span class="metric-value" th:text="${averageTicket}">R$ 63,06</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">Novos Clientes</span>
+                <span class="metric-value" th:text="${newCustomers}">38</span>
+            </div>
         </div>
 
-        <!-- Footer -->
-        <div class="footer">
-            <p>
-                <span class="brand">Na<span class="brand-highlight">Garagem</span></span><br>
-                Sistema de Gestão · 2026
-            </p>
+        <div class="insights-section">
+            <div class="ai-badge">
+                🤖 Análise por IA
+            </div>
+            <h3>Insights Estratégicos</h3>
+
+            <div th:if="${aiInsights != null}" th:utext="${aiInsights}">
+                <!-- Os insights da IA serão inseridos aqui -->
+            </div>
+
+            <div th:if="${aiInsights == null}">
+                <p class="insights-text">
+                    Não foi possível gerar insights automáticos para este período.
+                    Consulte o relatório em PDF anexo para análise detalhada dos dados.
+                </p>
+            </div>
         </div>
+
+        <p style="margin: 24px 0 0 0; font-size: 15px; color: #3f3f46; line-height: 1.6;">
+            📎 O relatório completo em PDF está anexado a este email com todos os dados detalhados.
+        </p>
+
+        <p style="margin: 20px 0 0 0; font-size: 15px; color: #3f3f46; line-height: 1.6;">
+            Em caso de dúvidas sobre os insights ou dados, estamos à disposição!
+        </p>
+
+        <p style="margin: 20px 0 0 0; font-size: 15px; color: #3f3f46; line-height: 1.6;">
+            Atenciosamente,<br>
+            <strong>Sistema <span th:text="${barbershopName}">Na Garagem Barbearia</span></strong>
+        </p>
     </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>
+            <span class="brand">Na<span class="brand-highlight">Garagem</span></span><br>
+            Sistema de Gestão · 2026
+        </p>
+    </div>
+</div>
 </body>
 </html>

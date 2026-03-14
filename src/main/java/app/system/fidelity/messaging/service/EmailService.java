@@ -7,6 +7,7 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.math.BigDecimal;
 import java.time.YearMonth;
 import java.time.format.TextStyle;
 import java.util.*;
@@ -55,7 +56,13 @@ public class EmailService {
     public void sendMonthlyReportEmail(
             final List<String> toEmails,
             final byte[] pdfAttachment,
-            final YearMonth reportMonth
+            final YearMonth reportMonth,
+            final String aiInsights,
+            final BigDecimal totalRevenue,
+            final BigDecimal revenueGrowthPercentage,
+            final Long totalAppointments,
+            final BigDecimal averageTicket,
+            final Long newCustomers
     ) {
         if (toEmails == null || toEmails.isEmpty()) {
             log.warn("Nenhum destinatário fornecido para relatório mensal");
@@ -69,14 +76,23 @@ public class EmailService {
             variables.put("monthYear", formatMonthYear(reportMonth));
             variables.put("barbershopName", barbershopName);
 
-            final String htmlContent = templateService.processTemplate("monthly-report-email", variables);
+            variables.put("aiInsights", templateService.formatInsightsToHtml(aiInsights));
+
+            variables.put("totalRevenue", formatCurrency(totalRevenue));
+            variables.put("revenueGrowth", formatGrowthPercentage(revenueGrowthPercentage));
+            variables.put("isGrowthPositive", revenueGrowthPercentage != null && revenueGrowthPercentage.compareTo(BigDecimal.ZERO) >= 0);
+            variables.put("totalAppointments", totalAppointments);
+            variables.put("averageTicket", formatCurrency(averageTicket));
+            variables.put("newCustomers", newCustomers);
+
+            final String htmlContent = templateService.processTemplate("monthly-insights-email", variables);
             final String filename = buildPdfFilename(reportMonth);
 
             for (String email : toEmails) {
                 sendEmail(email, subject, htmlContent, pdfAttachment, filename);
             }
 
-            log.info("Relatório mensal enviado com sucesso para {} destinatários", toEmails.size());
+            log.info("Relatório mensal com insights enviado com sucesso para {} destinatários", toEmails.size());
 
         } catch (Exception e) {
             log.error("Erro ao enviar email com relatório mensal", e);
@@ -125,7 +141,7 @@ public class EmailService {
     private String buildMonthlyReportSubject(final YearMonth reportMonth) {
         final String monthName = reportMonth.getMonth()
                 .getDisplayName(TextStyle.FULL, new Locale("pt", "BR"));
-        return String.format("[%s] Relatório Mensal - %s/%d",
+        return String.format("[%s] Análise Mensal com Insights - %s/%d",
                 barbershopName,
                 monthName.substring(0, 1).toUpperCase() + monthName.substring(1),
                 reportMonth.getYear());
@@ -143,5 +159,16 @@ public class EmailService {
         return String.format("%s de %d",
                 monthName.substring(0, 1).toUpperCase() + monthName.substring(1),
                 yearMonth.getYear());
+    }
+
+    private String formatCurrency(final BigDecimal value) {
+        if (value == null) return "R$ 0,00";
+        return String.format("R$ %,.2f", value);
+    }
+
+    private String formatGrowthPercentage(final BigDecimal value) {
+        if (value == null) return "0,00%";
+        final String sign = value.compareTo(BigDecimal.ZERO) >= 0 ? "+" : "";
+        return String.format("%s%.2f%%", sign, value);
     }
 }
