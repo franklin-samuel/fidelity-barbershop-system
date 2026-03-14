@@ -25,7 +25,8 @@ public class TemplateService {
         templateResolver.setSuffix(".html");
         templateResolver.setTemplateMode(TemplateMode.HTML);
         templateResolver.setCharacterEncoding("UTF-8");
-        templateResolver.setCacheable(true);
+        templateResolver.setCacheable(false);
+        templateResolver.setCheckExistence(true);
 
         final TemplateEngine engine = new TemplateEngine();
         engine.setTemplateResolver(templateResolver);
@@ -33,23 +34,24 @@ public class TemplateService {
         return engine;
     }
 
-    /**
-     * Processa um template HTML com as variáveis fornecidas
-     *
-     * @param templateName Nome do template (sem .html)
-     * @param variables Mapa de variáveis para o template
-     * @return HTML processado
-     */
     public String processTemplate(final String templateName, final Map<String, Object> variables) {
         try {
+            log.info("Tentando processar template: {}", templateName);
+            log.info("Variáveis recebidas: {}", variables);
+
             final Context context = new Context();
             context.setVariables(variables);
 
-            return templateEngine.process(templateName, context);
+            final String result = templateEngine.process(templateName, context);
+
+            log.info("Template processado com sucesso! Tamanho do HTML: {} caracteres", result.length());
+            log.debug("HTML gerado (primeiros 200 chars): {}", result.substring(0, Math.min(200, result.length())));
+
+            return result;
 
         } catch (Exception e) {
-            log.error("Erro ao processar template {}: {}", templateName, e.getMessage(), e);
-            throw new RuntimeException("Falha ao processar template de email", e);
+            log.error("ERRO ao processar template {}: {}", templateName, e.getMessage(), e);
+            throw new RuntimeException("Falha ao processar template de email: " + templateName, e);
         }
     }
 }

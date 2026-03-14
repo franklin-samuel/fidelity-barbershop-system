@@ -45,14 +45,18 @@ public class SendWelcomeEmailAdapter implements SendWelcomeEmailPort {
 
             log.info("Iniciando envio de email de boas-vindas para {} ({})", customerName, customerEmail);
 
-            emailService.sendWelcomeEmail(customerEmail, customerName, requiredCuts);
-
-            log.info("Email de boas-vindas processado para {}", customerEmail);
+            try {
+                emailService.sendWelcomeEmail(customerEmail, customerName, requiredCuts);
+                log.info("Email de boas-vindas enviado com sucesso para {}", customerEmail);
+            } catch (Exception emailException) {
+                log.error("ERRO ESPECÍFICO ao enviar email para {}: {}", customerEmail, emailException.getMessage(), emailException);
+                throw emailException;
+            }
 
             return CompletableFuture.completedFuture(null);
 
         } catch (Exception e) {
-            log.error("Erro ao processar envio de email de boas-vindas", e);
+            log.error("Erro ao processar envio de email de boas-vindas: {}", e.getMessage(), e);
             return CompletableFuture.completedFuture(null);
         }
     }
