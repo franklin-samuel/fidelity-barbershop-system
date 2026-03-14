@@ -24,11 +24,9 @@ public class CustomerRequest {
     @Size(min = 3, max = 100, message = "Nome deve ter entre 3 e 100 caracteres")
     private String name;
 
-    @NotBlank(message = "Email é obrigatório")
     @Email(message = "Email inválido")
     private String email;
 
-    @NotBlank(message = "Telefone é obrigatório")
     @JsonProperty("phone_number")
     private String phoneNumber;
 

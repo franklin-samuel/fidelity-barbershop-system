@@ -15,7 +15,6 @@ public record CustomerUpdateRequest(
         @Email(message = "Email inválido")
         String email,
 
-        @Size(min = 10, max = 15, message = "Telefone deve ter entre 10 e 15 caracteres")
         @JsonProperty("phone_number")
         String phoneNumber
 ) {

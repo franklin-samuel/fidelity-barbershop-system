@@ -31,14 +31,15 @@ public class CreateCustomerAdapter implements CreateCustomerPort {
         if (customer.getName() == null || customer.getName().isBlank()) {
             throw new BusinessException("Por favor, insira o nome do cliente.");
         }
-        if (customer.getEmail() == null || customer.getEmail().isBlank()) {
-            throw new BusinessException("Por favor, insira o email do cliente.");
-        }
-        if (customer.getPhoneNumber() == null || customer.getPhoneNumber().isBlank()) {
-            throw new BusinessException("Por favor, insira o telefone do cliente.");
+
+        final boolean hasEmail = customer.getEmail() != null && !customer.getEmail().isBlank();
+        final boolean hasPhone = customer.getPhoneNumber() != null && !customer.getPhoneNumber().isBlank();
+
+        if (!hasPhone && !hasEmail) {
+            throw new BusinessException("Por favor, insira o email ou telefone do cliente.");
         }
 
-        if(repository.existsByEmail(customer.getEmail())) {
+        if (hasEmail && repository.existsByEmail(customer.getEmail())) {
             throw new BusinessException("Já existe um cliente com esse email.");
         }
 
@@ -69,10 +70,12 @@ public class CreateCustomerAdapter implements CreateCustomerPort {
                 .build());
 
 
-        final Context emailContext = new Context();
-        emailContext.putProperty("customerEmail", savedCustomer.getEmail());
-        emailContext.putProperty("customerName", savedCustomer.getName());
-        sendWelcomeEmailPort.execute(emailContext);
+        if (hasEmail){
+            final Context emailContext = new Context();
+            emailContext.putProperty("customerEmail", savedCustomer.getEmail());
+            emailContext.putProperty("customerName", savedCustomer.getName());
+            sendWelcomeEmailPort.execute(emailContext);
+        }
 
         return savedCustomer;
     }

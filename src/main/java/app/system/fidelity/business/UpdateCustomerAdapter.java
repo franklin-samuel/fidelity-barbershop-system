@@ -30,9 +30,24 @@ public class UpdateCustomerAdapter implements UpdateCustomerPort {
         Customer customer = repository.get(customerForm.getId())
                 .orElseThrow(() -> new BusinessException("Cliente não encontrado"));
 
-        customer.setName(customerForm.getName().trim());
-        customer.setEmail(customerForm.getEmail().trim());
-        customer.setPhoneNumber(customerForm.getPhoneNumber().trim());
+        if (customerForm.getName() != null && !customerForm.getName().isBlank()) {
+            customer.setName(customerForm.getName().trim());
+        }
+
+        if (customerForm.getEmail() != null && !customerForm.getEmail().isBlank()) {
+            customer.setEmail(customerForm.getEmail().trim());
+        }
+
+        if (customerForm.getPhoneNumber() != null && !customerForm.getPhoneNumber().isBlank()) {
+            customer.setPhoneNumber(customerForm.getPhoneNumber().trim());
+        }
+
+        final boolean hasEmail = customer.getEmail() != null && !customer.getEmail().isBlank();
+        final boolean hasPhone = customer.getPhoneNumber() != null && !customer.getPhoneNumber().isBlank();
+
+        if (!hasEmail && !hasPhone) {
+            throw new BusinessException("O cliente deve ter pelo menos email ou telefone cadastrado.");
+        }
 
         customer.setModifiedAt(LocalDateTime.now());
 
