@@ -1,23 +1,29 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bem-vindo à Na Garagem Barbearia</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f4;">
-<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f4f4f4; padding: 40px 0;">
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background-color: #fafafa;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #fafafa; padding: 40px 0;">
     <tr>
         <td align="center">
-            <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
 
                 <!-- Header -->
                 <tr>
-                    <td style="background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); padding: 40px 30px; border-radius: 8px 8px 0 0;">
-                        <h1 style="margin: 0; color: #ffffff; font-size: 32px; text-align: center; font-weight: 700; letter-spacing: -0.5px;">
+                    <td style="background: linear-gradient(135deg, #18181b 0%, #27272a 100%); padding: 48px 32px; border-radius: 16px 16px 0 0; text-align: center;">
+                        <!-- Logo -->
+                        <div style="display: inline-block; width: 56px; height: 56px; background-color: #f59e0b; border-radius: 12px; margin-bottom: 16px;">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" style="margin: 12px;">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z"/>
+                            </svg>
+                        </div>
+                        <h1 style="margin: 0; color: #ffffff; font-size: 32px; font-weight: 700; letter-spacing: -0.5px;">
                             Bem-vindo!
                         </h1>
-                        <p style="margin: 15px 0 0 0; color: #ffffff; font-size: 18px; text-align: center; opacity: 0.95; font-weight: 500;">
+                        <p style="margin: 12px 0 0 0; color: #fafafa; font-size: 18px; font-weight: 500; opacity: 0.95;">
                             Na Garagem Barbearia
                         </p>
                     </td>
@@ -25,103 +31,110 @@
 
                 <!-- Body -->
                 <tr>
-                    <td style="padding: 40px 30px;">
-                        <!-- Saudação personalizada -->
-                        <p style="margin: 0 0 20px 0; font-size: 18px; color: #333333; line-height: 1.6;">
+                    <td style="padding: 40px 32px;">
+                        <!-- Saudação -->
+                        <p style="margin: 0 0 20px 0; font-size: 18px; color: #18181b; font-weight: 600; line-height: 1.6;">
                             Olá, <strong th:text="${customerName}">Cliente</strong>! 👋
                         </p>
 
-                        <p style="margin: 0 0 20px 0; font-size: 16px; color: #333333; line-height: 1.6;">
-                            É um prazer ter você com a gente!! Estamos muito felizes em recebê-lo na família <strong>Na Garagem Barbearia</strong>.
+                        <p style="margin: 0 0 20px 0; font-size: 16px; color: #3f3f46; line-height: 1.6;">
+                            É um prazer ter você com a gente! Estamos muito felizes em recebê-lo na família <strong>Na Garagem Barbearia</strong>.
                         </p>
 
-                        <!-- Oferta especial -->
-                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; margin: 30px 0; border-radius: 8px; text-align: center;">
-                            <h2 style="margin: 0 0 15px 0; color: #ffffff; font-size: 24px; font-weight: 700;">
-                                Oferta Especial!
+                        <!-- Oferta Especial -->
+                        <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 32px; margin: 32px 0; border-radius: 12px; text-align: center; box-shadow: 0 4px 16px rgba(245, 158, 11, 0.2);">
+                            <h2 style="margin: 0 0 12px 0; color: #ffffff; font-size: 24px; font-weight: 700;">
+                                🎉 Oferta Especial!
                             </h2>
-                            <p style="margin: 0 0 10px 0; color: #ffffff; font-size: 18px; line-height: 1.6;">
+                            <p style="margin: 0 0 8px 0; color: #ffffff; font-size: 18px; font-weight: 500;">
                                 No seu <strong th:text="${requiredCuts} + 'º'">5º</strong> corte, você ganha
                             </p>
-                            <p style="margin: 0; color: #ffd700; font-size: 36px; font-weight: 700; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">
-                                50% de DESCONTO
+                            <p style="margin: 8px 0 0 0; color: #18181b; font-size: 42px; font-weight: 700; text-shadow: 2px 2px 4px rgba(0,0,0,0.1);">
+                                50% OFF
                             </p>
                         </div>
 
-                        <p style="margin: 0 0 20px 0; font-size: 16px; color: #333333; line-height: 1.6;">
+                        <p style="margin: 0 0 20px 0; font-size: 16px; color: #3f3f46; line-height: 1.6;">
                             A cada atendimento, você acumula pontos. Quando completar <strong th:text="${requiredCuts}">5</strong> cortes, automaticamente ganha metade do valor de volta no próximo!
                         </p>
 
-                        <!-- Informações de contato -->
-                        <div style="background-color: #f8f9fa; padding: 25px; margin: 30px 0; border-radius: 8px; border-left: 4px solid #667eea;">
-                            <h3 style="margin: 0 0 15px 0; color: #333333; font-size: 18px; font-weight: 600;">
-                                Nossas Informações
-                            </h3>
+                        <!-- Informações de Contato -->
+                        <div style="background-color: #fafafa; border: 1px solid #e4e4e7; border-left: 4px solid #f59e0b; padding: 24px; margin: 32px 0; border-radius: 12px;">
+                            <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                                <div style="width: 40px; height: 40px; background-color: #f59e0b; border-radius: 8px; display: inline-block; text-align: center; line-height: 40px; margin-right: 12px;">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" style="vertical-align: middle; margin-top: 8px;">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </div>
+                                <h3 style="margin: 0; color: #18181b; font-size: 18px; font-weight: 600; display: inline-block;">
+                                    Nossas Informações
+                                </h3>
+                            </div>
 
-                            <p style="margin: 0 0 10px 0; font-size: 15px; color: #555555; line-height: 1.8;">
-                                <strong>Endereço:</strong><br>
+                            <p style="margin: 0 0 10px 0; font-size: 15px; color: #3f3f46; line-height: 1.8;">
+                                <strong style="color: #18181b;">Endereço:</strong><br>
                                 R. Carmindo Quadros, 46<br>
                                 Nova Parnamirim, Parnamirim - RN<br>
                                 CEP: 59152-770
                             </p>
 
-                            <p style="margin: 15px 0 10px 0; font-size: 15px; color: #555555; line-height: 1.8;">
-                                <strong>WhatsApp:</strong><br>
-                                <a href="https://wa.me/5584988797773" style="color: #667eea; text-decoration: none; font-weight: 500;">
+                            <p style="margin: 15px 0 10px 0; font-size: 15px; color: #3f3f46; line-height: 1.8;">
+                                <strong style="color: #18181b;">WhatsApp:</strong><br>
+                                <a href="https://wa.me/5584988797773" style="color: #f59e0b; text-decoration: none; font-weight: 500;">
                                     +55 (84) 98879-7773
                                 </a>
                             </p>
 
-                            <p style="margin: 15px 0 10px 0; font-size: 15px; color: #555555; line-height: 1.8;">
-                                <strong>Horário:</strong><br>
+                            <p style="margin: 15px 0 10px 0; font-size: 15px; color: #3f3f46; line-height: 1.8;">
+                                <strong style="color: #18181b;">Horário:</strong><br>
                                 Segunda a Sábado: 8h às 19h30
                             </p>
 
-                            <p style="margin: 15px 0 0 0; font-size: 15px; color: #555555; line-height: 1.8;">
-                                <strong>Instagram:</strong><br>
-                                <a href="https://instagram.com/sbnagaragem" style="color: #667eea; text-decoration: none; font-weight: 500;">
+                            <p style="margin: 15px 0 0 0; font-size: 15px; color: #3f3f46; line-height: 1.8;">
+                                <strong style="color: #18181b;">Instagram:</strong><br>
+                                <a href="https://instagram.com/sbnagaragem" style="color: #f59e0b; text-decoration: none; font-weight: 500;">
                                     @sbnagaragem
                                 </a>
                             </p>
                         </div>
 
-                        <!-- CTA -->
-                        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 30px 0;">
+                        <!-- CTA Button -->
+                        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 32px 0;">
                             <tr>
                                 <td align="center">
                                     <a href="https://wa.me/5584988797773?text=Ol%C3%A1!%20Acabei%20de%20me%20cadastrar%20e%20gostaria%20de%20agendar%20meu%20primeiro%20corte!"
-                                       style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);">
+                                       style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #18181b; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);">
                                         Agende seu primeiro corte
                                     </a>
                                 </td>
                             </tr>
                         </table>
 
-                        <p style="margin: 30px 0 0 0; font-size: 16px; color: #333333; line-height: 1.6;">
+                        <p style="margin: 30px 0 0 0; font-size: 16px; color: #3f3f46; line-height: 1.6;">
                             Estamos ansiosos para te atender!
                         </p>
 
-                        <p style="margin: 15px 0 0 0; font-size: 16px; color: #333333; line-height: 1.6;">
+                        <p style="margin: 15px 0 0 0; font-size: 16px; color: #3f3f46; line-height: 1.6;">
                             Abraço forte,<br>
-                            <strong>Equipe Na Garagem Barbearia</strong>
+                            <strong style="color: #18181b;">Equipe Na Garagem Barbearia</strong>
                         </p>
                     </td>
                 </tr>
 
                 <!-- Footer -->
                 <tr>
-                    <td style="background-color: #f8f9fa; padding: 30px; text-align: center; border-radius: 0 0 8px 8px; border-top: 1px solid #e9ecef;">
-                        <p style="margin: 0 0 10px 0; font-size: 13px; color: #6c757d;">
+                    <td style="background-color: #fafafa; padding: 32px; text-align: center; border-radius: 0 0 16px 16px; border-top: 1px solid #e4e4e7;">
+                        <p style="margin: 0 0 10px 0; font-size: 13px; color: #71717a;">
                             Siga a gente no Instagram:
-                            <a href="https://instagram.com/sbnagaragem" style="color: #667eea; text-decoration: none; font-weight: 600;">
+                            <a href="https://instagram.com/sbnagaragem" style="color: #f59e0b; text-decoration: none; font-weight: 600;">
                                 @sbnagaragem
                             </a>
                         </p>
-                        <p style="margin: 10px 0 0 0; font-size: 12px; color: #6c757d;">
+                        <p style="margin: 10px 0 0 0; font-size: 12px; color: #71717a;">
                             R. Carmindo Quadros, 46 - Nova Parnamirim, Parnamirim - RN
                         </p>
-                        <p style="margin: 5px 0 0 0; font-size: 12px; color: #6c757d;">
-                            Na Garagem Barbearia © 2024 - Todos os direitos reservados
+                        <p style="margin: 5px 0 0 0; font-size: 12px; color: #71717a;">
+                            <span style="font-weight: 700; color: #18181b;">Na<span style="color: #f59e0b;">Garagem</span></span> © 2024 - Todos os direitos reservados
                         </p>
                     </td>
                 </tr>

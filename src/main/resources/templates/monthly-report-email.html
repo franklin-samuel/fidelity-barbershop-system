@@ -1,90 +1,265 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Relatório Mensal</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background-color: #fafafa;
+            color: #18181b;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+        .header {
+            background: linear-gradient(135deg, #18181b 0%, #27272a 100%);
+            padding: 48px 32px;
+            text-align: center;
+        }
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 56px;
+            height: 56px;
+            background-color: #f59e0b;
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+        .logo svg {
+            width: 32px;
+            height: 32px;
+            fill: none;
+            stroke: #ffffff;
+            stroke-width: 2;
+        }
+        .header h1 {
+            margin: 0;
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        .header p {
+            margin: 12px 0 0 0;
+            color: #fafafa;
+            font-size: 16px;
+            font-weight: 500;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 40px 32px;
+        }
+        .greeting {
+            font-size: 18px;
+            color: #18181b;
+            margin: 0 0 24px 0;
+            font-weight: 600;
+        }
+        .text {
+            font-size: 16px;
+            color: #3f3f46;
+            margin: 0 0 20px 0;
+        }
+        .report-card {
+            background-color: #fafafa;
+            border: 1px solid #e4e4e7;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 24px 0;
+        }
+        .report-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e4e4e7;
+        }
+        .report-card-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .report-card-icon svg {
+            width: 24px;
+            height: 24px;
+            fill: none;
+            stroke: #ffffff;
+            stroke-width: 2;
+        }
+        .report-card h3 {
+            margin: 0;
+            color: #18181b;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .attachment-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background-color: #ffffff;
+            border: 1px solid #e4e4e7;
+            border-radius: 8px;
+        }
+        .attachment-icon {
+            width: 48px;
+            height: 48px;
+            background-color: #f59e0b;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .attachment-icon svg {
+            width: 28px;
+            height: 28px;
+            fill: none;
+            stroke: #ffffff;
+            stroke-width: 2;
+        }
+        .attachment-details {
+            flex: 1;
+        }
+        .attachment-details p {
+            margin: 0;
+            color: #18181b;
+            font-size: 15px;
+            font-weight: 600;
+        }
+        .attachment-details span {
+            display: block;
+            margin-top: 4px;
+            color: #71717a;
+            font-size: 13px;
+        }
+        .footer {
+            background-color: #fafafa;
+            padding: 32px;
+            text-align: center;
+            border-top: 1px solid #e4e4e7;
+        }
+        .footer p {
+            margin: 0;
+            color: #71717a;
+            font-size: 14px;
+        }
+        .footer .brand {
+            font-weight: 700;
+            color: #18181b;
+        }
+        .footer .brand-highlight {
+            color: #f59e0b;
+        }
+        @media only screen and (max-width: 600px) {
+            .container {
+                margin: 0;
+                border-radius: 0;
+            }
+            .header {
+                padding: 32px 24px;
+            }
+            .content {
+                padding: 32px 24px;
+            }
+            .report-card {
+                padding: 20px;
+            }
+        }
+    </style>
 </head>
-<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f4;">
-<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f4f4f4; padding: 40px 0;">
-    <tr>
-        <td align="center">
-            <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+<body>
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <div class="logo">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+        </div>
+        <h1>Relatório Mensal</h1>
+        <p th:text="${monthYear}">Dezembro de 2024</p>
+    </div>
 
-                <!-- Header -->
-                <tr>
-                    <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; border-radius: 8px 8px 0 0;">
-                        <h1 style="margin: 0; color: #ffffff; font-size: 28px; text-align: center; font-weight: 600;">
-                            Relatório Mensal
-                        </h1>
-                        <p style="margin: 10px 0 0 0; color: #ffffff; font-size: 16px; text-align: center; opacity: 0.9;" th:text="${monthYear}">
-                            Janeiro de 2024
-                        </p>
-                    </td>
-                </tr>
+    <!-- Content -->
+    <div class="content">
+        <p class="greeting">
+            Olá! 📊
+        </p>
 
-                <!-- Body -->
-                <tr>
-                    <td style="padding: 40px 30px;">
-                        <p style="margin: 0 0 20px 0; font-size: 16px; color: #333333; line-height: 1.6;">
-                            Olá! 👋
-                        </p>
+        <p class="text">
+            Seu relatório mensal de <strong th:text="${monthYear}">Dezembro de 2024</strong>
+            está disponível para análise.
+        </p>
 
-                        <p style="margin: 0 0 20px 0; font-size: 16px; color: #333333; line-height: 1.6;">
-                            O relatório mensal de <strong th:text="${barbershopName}">Na Garagem Barbearia</strong> está pronto!
-                        </p>
+        <!-- Report Card -->
+        <div class="report-card">
+            <div class="report-card-header">
+                <div class="report-card-icon">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                </div>
+                <h3>Relatório em Anexo</h3>
+            </div>
 
-                        <p style="margin: 0 0 30px 0; font-size: 16px; color: #333333; line-height: 1.6;">
-                            Este documento contém uma análise completa do desempenho do mês, incluindo:
-                        </p>
+            <div class="attachment-info">
+                <div class="attachment-icon">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                    </svg>
+                </div>
+                <div class="attachment-details">
+                    <p>relatorio-mensal.pdf</p>
+                    <span>Documento PDF · Anexado</span>
+                </div>
+            </div>
+            </p>
 
-                        <ul style="margin: 0 0 30px 0; padding-left: 20px; color: #333333; font-size: 15px; line-height: 1.8;">
-                            <li>Análise de receitas e crescimento</li>
-                            <li>Desempenho detalhado de cada barbeiro</li>
-                            <li>Estatísticas de atendimentos e novos clientes</li>
-                            <li>Insights estratégicos para otimizar a agenda</li>
-                            <li>Recomendações de promoções para dias fracos</li>
-                        </ul>
+            <p class="text">
+                O relatório contém informações detalhadas sobre:
+            </p>
 
-                        <div style="background-color: #f8f9fa; border-left: 4px solid #667eea; padding: 20px; margin: 30px 0; border-radius: 4px;">
-                            <p style="margin: 0; font-size: 14px; color: #555555; line-height: 1.6;">
-                                <strong>Dica:</strong> Use os insights do relatório para planejar promoções estratégicas e otimizar sua equipe nos dias de menor movimento.
-                            </p>
-                        </div>
+            <ul style="margin: 0 0 20px 0; padding-left: 24px; color: #3f3f46; font-size: 15px;">
+                <li style="margin-bottom: 8px;">Faturamento do mês</li>
+                <li style="margin-bottom: 8px;">Atendimentos realizados</li>
+                <li style="margin-bottom: 8px;">Desempenho da equipe</li>
+                <li style="margin-bottom: 8px;">Análise de clientes</li>
+            </ul>
 
-                        <p style="margin: 30px 0 0 0; font-size: 16px; color: #333333; line-height: 1.6;">
-                            O PDF está anexado neste email.
-                        </p>
+            <p class="text">
+                Em caso de dúvidas, estamos à disposição!
+            </p>
 
-                        <p style="margin: 20px 0 0 0; font-size: 16px; color: #333333; line-height: 1.6;">
-                            Qualquer dúvida, estamos à disposição!
-                        </p>
+            <p class="text">
+                Atenciosamente,<br>
+                <strong>Equipe <span th:text="${barbershopName}">Na Garagem Barbearia</span></strong>
+            </p>
+        </div>
 
-                        <p style="margin: 10px 0 0 0; font-size: 16px; color: #333333; line-height: 1.6;">
-                            Abraço,<br>
-                            <strong>Equipe <span th:text="${barbershopName}">Na Garagem Barbearia</span></strong>
-                        </p>
-                    </td>
-                </tr>
-
-                <!-- Footer -->
-                <tr>
-                    <td style="background-color: #f8f9fa; padding: 30px; text-align: center; border-radius: 0 0 8px 8px; border-top: 1px solid #e9ecef;">
-                        <p style="margin: 0 0 10px 0; font-size: 13px; color: #6c757d;">
-                            Este é um email automático enviado no primeiro dia de cada mês.
-                        </p>
-                        <p style="margin: 10px 0 0 0; font-size: 13px; color: #6c757d;">
-                            <span th:text="${barbershopName}">Na Garagem Barbearia</span> - Sistema de Fidelidade
-                        </p>
-                        <p style="margin: 10px 0 0 0; font-size: 12px; color: #6c757d;">
-                            R. Carmindo Quadros, 46 - Nova Parnamirim, Parnamirim - RN
-                        </p>
-                    </td>
-                </tr>
-
-            </table>
-        </td>
-    </tr>
-</table>
+        <!-- Footer -->
+        <div class="footer">
+            <p>
+                <span class="brand">Na<span class="brand-highlight">Garagem</span></span><br>
+                Sistema de Gestão · 2026
+            </p>
+        </div>
+    </div>
 </body>
 </html>
