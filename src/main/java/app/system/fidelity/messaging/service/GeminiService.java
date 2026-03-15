@@ -23,7 +23,7 @@ public class GeminiService {
             final String prompt = buildPrompt(report);
 
             final GenerateContentResponse response = client.models.generateContent(
-                    "gemini-2.0-flash-exp",
+                    "gemini-3-flash-preview",
                     prompt,
                     null
             );
