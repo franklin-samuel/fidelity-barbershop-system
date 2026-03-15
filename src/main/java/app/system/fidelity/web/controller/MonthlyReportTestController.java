@@ -7,6 +7,7 @@ import app.system.fidelity.core.persistence.UserRepositoryPort;
 import app.system.fidelity.domain.MonthlyReport;
 import app.system.fidelity.domain.User;
 import app.system.fidelity.messaging.service.EmailService;
+import app.system.fidelity.messaging.service.GeminiService;
 import app.system.fidelity.messaging.service.PdfGeneratorService;
 import app.system.fidelity.web.commons.ApiResponse;
 import lombok.RequiredArgsConstructor;
@@ -25,13 +26,14 @@ import java.util.Map;
 public class MonthlyReportTestController {
 
     private final GenerateMonthlyReportPort generateMonthlyReportPort;
+    private final GeminiService geminiService;
     private final PdfGeneratorService pdfGeneratorService;
     private final EmailService emailService;
     private final UserRepositoryPort userRepository;
     private final SendMonthlyReportEmailPort sendMonthlyReportEmailPort;
 
     /**
-     * Teste completo: Gera relatório + PDF + Envia email para todos admins
+     * Teste completo: Gera relatório + PDF + Insights IA + Envia email para todos admins
      *
      * GET http://localhost:8080/api/test/monthly-report/send-full
      *
@@ -56,10 +58,10 @@ public class MonthlyReportTestController {
             result.put("status", "success");
             result.put("admins_count", adminEmails.size());
             result.put("admins_emails", adminEmails);
-            result.put("message", "Relatório enviado com sucesso!");
+            result.put("message", "Relatório com insights de IA enviado com sucesso!");
 
             return ResponseEntity.ok(ApiResponse.success(result,
-                    "Relatório mensal enviado para " + adminEmails.size() + " administrador(es)"));
+                    "Relatório mensal com insights enviado para " + adminEmails.size() + " administrador(es)"));
 
         } catch (Exception e) {
             return ResponseEntity.ok(ApiResponse.error("Erro ao enviar relatório: " + e.getMessage()));
@@ -87,15 +89,33 @@ public class MonthlyReportTestController {
 
             final MonthlyReport report = generateMonthlyReportPort.execute(new Context());
 
+            String aiInsights = null;
+            try {
+                aiInsights = geminiService.generateInsights(report);
+            } catch (Exception e) {
+                // Continua sem insights se falhar
+            }
+
             final byte[] pdfContent = pdfGeneratorService.generateMonthlyReportPdf(report);
 
-            emailService.sendMonthlyReportEmail(List.of(email), pdfContent, report.getReportMonth());
+            emailService.sendMonthlyReportEmail(
+                    List.of(email),
+                    pdfContent,
+                    report.getReportMonth(),
+                    aiInsights,
+                    report.getTotalRevenue(),
+                    report.getRevenueGrowthPercentage(),
+                    report.getTotalAppointments(),
+                    report.getAverageTicket(),
+                    report.getNewCustomers()
+            );
 
             final Map<String, Object> result = new HashMap<>();
             result.put("status", "success");
             result.put("email", email);
             result.put("report_month", report.getReportMonth().toString());
-            result.put("message", "Email enviado com sucesso!");
+            result.put("ai_insights_generated", aiInsights != null);
+            result.put("message", "Email com insights enviado com sucesso!");
 
             return ResponseEntity.ok(ApiResponse.success(result,
                     "Relatório enviado para: " + email));
@@ -106,7 +126,35 @@ public class MonthlyReportTestController {
     }
 
     /**
-     * Teste: Apenas visualiza os dados do relatório (sem gerar PDF ou enviar email)
+     * Teste: Apenas gera e visualiza os insights da IA (sem enviar email)
+     *
+     * GET http://localhost:8080/api/test/monthly-report/preview-insights
+     *
+     * Útil para testar se a IA está gerando insights corretamente.
+     */
+    @GetMapping("/preview-insights")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> previewInsights() {
+        try {
+            final MonthlyReport report = generateMonthlyReportPort.execute(new Context());
+
+            final String insights = geminiService.generateInsights(report);
+
+            final Map<String, Object> result = new HashMap<>();
+            result.put("report_month", report.getReportMonth().toString());
+            result.put("insights", insights);
+            result.put("total_revenue", report.getTotalRevenue());
+            result.put("growth_percentage", report.getRevenueGrowthPercentage());
+
+            return ResponseEntity.ok(ApiResponse.success(result,
+                    "Insights gerados com sucesso pela IA"));
+
+        } catch (Exception e) {
+            return ResponseEntity.ok(ApiResponse.error("Erro ao gerar insights: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Teste: Apenas visualiza os dados do relatório (sem gerar PDF, insights ou enviar email)
      *
      * GET http://localhost:8080/api/test/monthly-report/preview-data
      *
@@ -202,10 +250,13 @@ public class MonthlyReportTestController {
         final Map<String, String> endpoints = new HashMap<>();
 
         endpoints.put("GET /test/monthly-report/send-full",
-                "Teste completo: Envia email para TODOS os admins (igual ao cronjob)");
+                "Teste completo: Envia email com insights de IA para TODOS os admins (igual ao cronjob)");
 
         endpoints.put("POST /test/monthly-report/send-to-email",
-                "Envia para um email específico (Body: {\"email\": \"teste@email.com\"})");
+                "Envia com insights de IA para um email específico (Body: {\"email\": \"teste@email.com\"})");
+
+        endpoints.put("GET /test/monthly-report/preview-insights",
+                "Gera e visualiza apenas os insights da IA (sem enviar email)");
 
         endpoints.put("GET /test/monthly-report/preview-data",
                 "Apenas visualiza os dados do relatório (JSON)");
@@ -214,12 +265,12 @@ public class MonthlyReportTestController {
                 "Baixa o PDF diretamente (sem enviar email)");
 
         endpoints.put("GET /test/monthly-report/check-config",
-                "⚙Verifica configurações e lista admins");
+                "Verifica configurações e lista admins");
 
         endpoints.put("GET /test/monthly-report/help",
                 "Esta mensagem de ajuda");
 
         return ResponseEntity.ok(ApiResponse.success(endpoints,
-                "Endpoints de teste disponíveis"));
+                "Endpoints de teste disponíveis - Agora com IA! 🚀"));
     }
 }
