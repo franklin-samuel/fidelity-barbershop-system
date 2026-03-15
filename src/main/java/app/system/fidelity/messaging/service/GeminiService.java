@@ -1,36 +1,37 @@
 package app.system.fidelity.messaging.service;
 
 import app.system.fidelity.domain.MonthlyReport;
+import com.google.genai.Client;
+import com.google.genai.types.GenerateContentResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @Service
 public class GeminiService {
 
-    @Value("${gemini.api.key}")
-    private String apiKey;
+    private final Client client;
 
-    private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent";
-
-    private final RestTemplate restTemplate = new RestTemplate();
+    public GeminiService() {
+        this.client = new Client();
+    }
 
     public String generateInsights(final MonthlyReport report) {
         try {
             log.info("Gerando insights com Gemini para o mês: {}", report.getReportMonth());
 
             final String prompt = buildPrompt(report);
-            final String response = callGeminiAPI(prompt);
+
+            final GenerateContentResponse response = client.models.generateContent(
+                    "gemini-2.0-flash-exp",
+                    prompt,
+                    null
+            );
+
+            final String insights = response.text();
 
             log.info("Insights gerados com sucesso");
-            return response;
+            return insights;
 
         } catch (Exception e) {
             log.error("Erro ao gerar insights com Gemini: {}", e.getMessage(), e);
@@ -94,69 +95,6 @@ public class GeminiService {
                 formatBarbersPerformance(report),
                 formatWeakDaysInsights(report)
         );
-    }
-
-    private String callGeminiAPI(final String prompt) {
-        try {
-            final String url = GEMINI_API_URL + "?key=" + apiKey;
-
-            final HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-
-            final Map<String, Object> requestBody = new HashMap<>();
-
-            final Map<String, Object> content = new HashMap<>();
-            content.put("parts", List.of(Map.of("text", prompt)));
-
-            requestBody.put("contents", List.of(content));
-
-            final Map<String, Object> generationConfig = new HashMap<>();
-            generationConfig.put("temperature", 0.7);
-            generationConfig.put("maxOutputTokens", 1000);
-            requestBody.put("generationConfig", generationConfig);
-
-            final HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
-
-            final ResponseEntity<Map> response = restTemplate.exchange(
-                    url,
-                    HttpMethod.POST,
-                    request,
-                    Map.class
-            );
-
-            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                return extractTextFromResponse(response.getBody());
-            }
-
-            throw new RuntimeException("Resposta inválida da API Gemini");
-
-        } catch (Exception e) {
-            log.error("Erro na chamada da API Gemini: {}", e.getMessage(), e);
-            throw new RuntimeException("Falha ao chamar API Gemini", e);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private String extractTextFromResponse(final Map<String, Object> response) {
-        try {
-            final List<Map<String, Object>> candidates = (List<Map<String, Object>>) response.get("candidates");
-            if (candidates == null || candidates.isEmpty()) {
-                throw new RuntimeException("Nenhum candidate na resposta");
-            }
-
-            final Map<String, Object> content = (Map<String, Object>) candidates.get(0).get("content");
-            final List<Map<String, Object>> parts = (List<Map<String, Object>>) content.get("parts");
-
-            if (parts == null || parts.isEmpty()) {
-                throw new RuntimeException("Nenhum part na resposta");
-            }
-
-            return (String) parts.get(0).get("text");
-
-        } catch (Exception e) {
-            log.error("Erro ao extrair texto da resposta: {}", e.getMessage(), e);
-            throw new RuntimeException("Falha ao extrair texto da resposta Gemini", e);
-        }
     }
 
     private String formatMonthYear(final MonthlyReport report) {
