@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -36,18 +35,20 @@ public class DeleteAppointmentAdapter implements DeleteAppointmentPort {
 
         final UUID customerId = appointment.getCustomerId();
 
-        final Customer customer = customerRepository.get(customerId)
-                .orElseThrow(() -> new BusinessException("Cliente não encontrado"));
+        if (customerId != null) {
+            final Customer customer = customerRepository.get(customerId)
+                    .orElseThrow(() -> new BusinessException("Cliente não encontrado"));
 
-        if (customer.getServiceCount() > 0) {
-            customer.setServiceCount(customer.getServiceCount() - 1);
+            if (customer.getServiceCount() > 0) {
+                customer.setServiceCount(customer.getServiceCount() - 1);
+            }
+
+            if (appointment.getLoyaltyDiscountApplied() && customer.getDiscountsClaimed() > 0) {
+                customer.setDiscountsClaimed(customer.getDiscountsClaimed() - 1);
+            }
+
+            customerRepository.save(customer);
         }
-
-        if (appointment.getLoyaltyDiscountApplied() && customer.getDiscountsClaimed() > 0) {
-            customer.setDiscountsClaimed(customer.getDiscountsClaimed() - 1);
-        }
-
-        customerRepository.save(customer);
 
         appointmentRepository.delete(appointmentId);
 
