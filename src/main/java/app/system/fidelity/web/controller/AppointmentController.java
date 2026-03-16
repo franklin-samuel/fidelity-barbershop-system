@@ -101,7 +101,13 @@ public class AppointmentController {
             @Valid @RequestBody final AppointmentRequest request,
             @AuthenticationPrincipal final CustomUserDetails userDetails
     ) {
+        final Role userRole = userDetails.getAuthorities().stream()
+                .map(a -> Role.valueOf(a.getAuthority()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Usuário sem role definida"));
+
         final Appointment form = Appointment.builder()
+                .barberId(request.getBarberId())
                 .type(AppointmentType.SERVICE)
                 .paymentMethod(request.getPaymentMethod())
                 .customerId(request.getCustomerId())
@@ -111,7 +117,8 @@ public class AppointmentController {
                 .build();
 
         final Context context = new Context(form);
-        context.putProperty("barberId", userDetails.getUserId());
+        context.putProperty("authenticatedUserId", userDetails.getUserId());
+        context.putProperty("authenticatedUserRole", userRole);
 
         final Appointment savedAppointment = registerAppointmentPort.execute(context);
 
@@ -127,7 +134,13 @@ public class AppointmentController {
             @Valid @RequestBody final AppointmentRequest request,
             @AuthenticationPrincipal final CustomUserDetails userDetails
     ) {
+        final Role userRole = userDetails.getAuthorities().stream()
+                .map(a -> Role.valueOf(a.getAuthority()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Usuário sem role definida"));
+
         final Appointment form = Appointment.builder()
+                .barberId(request.getBarberId())
                 .type(AppointmentType.PRODUCT)
                 .paymentMethod(request.getPaymentMethod())
                 .customerId(request.getCustomerId())
@@ -137,7 +150,8 @@ public class AppointmentController {
                 .build();
 
         final Context context = new Context(form);
-        context.putProperty("barberId", userDetails.getUserId());
+        context.putProperty("authenticatedUserId", userDetails.getUserId());
+        context.putProperty("authenticatedUserRole", userRole);
 
         final Appointment savedAppointment = registerAppointmentPort.execute(context);
 

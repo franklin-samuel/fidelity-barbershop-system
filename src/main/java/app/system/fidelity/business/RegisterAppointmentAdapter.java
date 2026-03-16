@@ -30,10 +30,11 @@ public class RegisterAppointmentAdapter implements RegisterAppointmentPort {
 
     @Override
     public Appointment execute(final Context context) {
-        final UUID barberId = context.getProperty("barberId", UUID.class);
+        final UUID authenticatedUserId = context.getProperty("authenticatedUserId", UUID.class);
+        final Role authenticatedUserRole = context.getProperty("authenticatedUserRole", Role.class);
         final Appointment form = context.getData(Appointment.class);
 
-        if (barberId == null) {
+        if (authenticatedUserId == null) {
             throw new BusinessException("Usuário não autenticado.");
         }
         if (form == null) {
@@ -46,12 +47,39 @@ public class RegisterAppointmentAdapter implements RegisterAppointmentPort {
             throw new BusinessException("Por favor, selecione o meio de pagamento.");
         }
 
+        final UUID barberId = determineBarberId(form.getBarberId(), authenticatedUserId, authenticatedUserRole);
+
         final BigDecimal tip = form.getTip() != null ? form.getTip() : BigDecimal.ZERO;
 
         if (form.getType() == AppointmentType.SERVICE) {
             return registerServiceAppointment(form, barberId, tip);
         } else {
             return registerProductAppointment(form, barberId, tip);
+        }
+    }
+
+    private UUID determineBarberId(final UUID requestBarberId, final UUID authenticatedUserId, final Role authenticatedUserRole) {
+        if (authenticatedUserRole == Role.BARBER) {
+            return authenticatedUserId;
+        } else if (authenticatedUserRole == Role.ADMIN) {
+            if (requestBarberId == null) {
+                throw new BusinessException("Administrador deve informar qual barbeiro realizou o atendimento.");
+            }
+
+            final User barber = userRepositoryPort.get(requestBarberId)
+                    .orElseThrow(() -> new BusinessException("Barbeiro não encontrado."));
+
+            if (barber.getRole() != Role.BARBER) {
+                throw new BusinessException("O usuário informado não é um barbeiro.");
+            }
+
+            if (barber.getDeletedAt() != null) {
+                throw new BusinessException("O barbeiro informado está inativo.");
+            }
+
+            return requestBarberId;
+        } else {
+            throw new BusinessException("Role de usuário não reconhecida.");
         }
     }
 

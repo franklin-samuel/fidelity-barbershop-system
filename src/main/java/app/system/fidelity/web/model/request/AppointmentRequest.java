@@ -16,6 +16,9 @@ import java.util.UUID;
 @Setter
 public class AppointmentRequest {
 
+    @JsonProperty("barber_id")
+    private UUID barberId;
+
     @NotNull(message = "Meio de pagamento é obrigatório")
     @JsonProperty("payment_method")
     private PaymentMethod paymentMethod;
