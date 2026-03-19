@@ -184,6 +184,6 @@ public class AppointmentController {
 
         deleteAppointmentPort.execute(context);
 
-        return ResponseEntity.ok(ApiResponse.success("Atendimento deletado com sucesso"));
+        return ResponseEntity.ok(ApiResponse.success("Atendimento deletado com sucesso."));
     }
 }
