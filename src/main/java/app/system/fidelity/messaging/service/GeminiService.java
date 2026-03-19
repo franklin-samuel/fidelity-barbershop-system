@@ -66,6 +66,7 @@ public class GeminiService {
                 
                 **Perfil:**
                 - Barbearia pequena/média com %d barbeiro(s) ativo(s)
+                - Abre apenas de segunda a sábado
                 - Base total de clientes: %d
                 - Tendência geral do negócio: %s
                 - Negócio está crescendo? %s
