@@ -28,10 +28,8 @@ public class GeminiService {
         try {
             log.info("Gerando insights com contexto completo para: {}", report.getReportMonth());
 
-            // Agregar dados históricos e contextuais
             final AggregatedReportData aggregatedData = dataAggregator.aggregateDataForMonth(report.getReportMonth());
 
-            // Construir prompt otimizado
             final String prompt = buildContextualPrompt(report, aggregatedData);
 
             final GenerateContentResponse response = client.models.generateContent(
@@ -136,7 +134,7 @@ public class GeminiService {
                 
                 **5. INSIGHTS ACIONÁVEIS:**
                 - Seja ESPECÍFICO nos números ("A receita de produtos representa apenas 15%% do total")
-                - Seja GENÉRICO nas sugestões ("Crie estratégias para aumentar venda de produtos" - NÃO diga "Faça promoção 20%% off")
+                - Seja GENÉRICO nas sugestões ("Crie estratégias no sentido K, J, L para aumentar venda de produtos nos dias X, Y, Z. Por causa de A, B, C" - NÃO diga "Faça promoção 20%% off")
                 - Priorize 3-4 ações de maior impacto
                 
              
