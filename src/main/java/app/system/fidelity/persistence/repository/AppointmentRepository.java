@@ -171,6 +171,17 @@ public interface AppointmentRepository extends JpaRepository<AppointmentEntity, 
     @Query("SELECT MAX(a.createdAt) FROM AppointmentEntity a WHERE a.createdAt >= :startDate")
     Optional<LocalDateTime> findLastAppointmentDateFrom(@Param("startDate") LocalDateTime startDate);
 
+    @Query("SELECT a.paymentMethod, " +
+            "COALESCE(SUM(a.totalAmount + COALESCE(a.tip, 0)), 0), " +
+            "COUNT(a) " +
+            "FROM AppointmentEntity a " +
+            "WHERE a.createdAt BETWEEN :start AND :end " +
+            "GROUP BY a.paymentMethod")
+    List<Object[]> sumRevenueAndCountByPaymentMethodBetween(
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end
+    );
+
     @NonNull
     Page<AppointmentEntity> findAll(@NonNull final Specification<AppointmentEntity> spec, @NonNull final Pageable pageable);
 }

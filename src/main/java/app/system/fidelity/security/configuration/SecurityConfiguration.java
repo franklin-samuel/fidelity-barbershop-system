@@ -74,6 +74,9 @@ public class SecurityConfiguration {
                         // Analytics
                         .requestMatchers("/analytics/**").hasAuthority("ADMIN")
 
+                        // Financial
+                        .requestMatchers("/financial/**").hasAuthority("ADMIN")
+
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

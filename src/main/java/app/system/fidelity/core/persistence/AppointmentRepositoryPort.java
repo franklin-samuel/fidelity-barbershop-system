@@ -1,11 +1,7 @@
 package app.system.fidelity.core.persistence;
 
 import app.system.fidelity.core.persistence.commons.BaseRepositoryPort;
-import app.system.fidelity.domain.Appointment;
-import app.system.fidelity.domain.AppointmentFilterList;
-import app.system.fidelity.domain.BarberRevenueSummary;
-import app.system.fidelity.domain.CustomerAppointmentSummary;
-import app.system.fidelity.domain.WeekdayRevenue;
+import app.system.fidelity.domain.*;
 import app.system.fidelity.domain.pagination.PageObject;
 import app.system.fidelity.domain.pagination.Paging;
 
@@ -77,5 +73,7 @@ public interface AppointmentRepositoryPort extends BaseRepositoryPort<Appointmen
     Optional<LocalDateTime> findLastAppointmentDateFrom(final LocalDateTime startDate);
 
     PageObject<Appointment> findByFilters(final AppointmentFilterList filters, final Paging paging);
+
+    List<PaymentMethodRevenue> findRevenueGroupByPaymentMethodBetween(final LocalDateTime start, final LocalDateTime end);
 
 }

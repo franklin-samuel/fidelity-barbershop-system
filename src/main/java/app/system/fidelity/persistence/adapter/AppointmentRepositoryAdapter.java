@@ -1,11 +1,8 @@
 package app.system.fidelity.persistence.adapter;
 
 import app.system.fidelity.core.persistence.AppointmentRepositoryPort;
-import app.system.fidelity.domain.Appointment;
-import app.system.fidelity.domain.AppointmentFilterList;
-import app.system.fidelity.domain.BarberRevenueSummary;
-import app.system.fidelity.domain.CustomerAppointmentSummary;
-import app.system.fidelity.domain.WeekdayRevenue;
+import app.system.fidelity.domain.*;
+import app.system.fidelity.domain.enums.PaymentMethod;
 import app.system.fidelity.domain.pagination.PageObject;
 import app.system.fidelity.domain.pagination.Paging;
 import app.system.fidelity.persistence.mapper.AppointmentMapper;
@@ -250,6 +247,18 @@ public class AppointmentRepositoryAdapter implements AppointmentRepositoryPort {
         );
 
         return PageObjectMapper.map(appointmentEntityPage, mapper::map);
+    }
+
+    @Override
+    public List<PaymentMethodRevenue> findRevenueGroupByPaymentMethodBetween(final LocalDateTime start, final LocalDateTime end) {
+        return repository.sumRevenueAndCountByPaymentMethodBetween(start, end)
+                .stream()
+                .map(row -> new PaymentMethodRevenue(
+                        (PaymentMethod) row[0],
+                        (BigDecimal) row[1],
+                        (Long) row[2]
+                ))
+                .toList();
     }
 
 }
