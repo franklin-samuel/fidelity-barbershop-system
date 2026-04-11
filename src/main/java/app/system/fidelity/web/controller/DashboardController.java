@@ -13,8 +13,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/dashboard")
@@ -47,5 +50,21 @@ public class DashboardController {
         final DashboardMetricsResponse response = mapper.mapToResponse(metrics, isAdmin);
 
         return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @GetMapping("/barber/{barberId}")
+    public ResponseEntity<ApiResponse<DashboardMetricsResponse>> getBarberMetrics(
+            @PathVariable final UUID barberId
+    ) {
+
+        final Context context = new Context();
+        context.putProperty("userId", barberId);
+
+        final DashboardMetrics metrics = getBarberDashboardMetricsPort.execute(context);
+
+        final DashboardMetricsResponse response = mapper.mapToResponse(metrics, false);
+
+        return ResponseEntity.ok(ApiResponse.success(response));
+
     }
 }

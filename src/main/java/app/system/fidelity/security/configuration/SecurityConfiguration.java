@@ -70,6 +70,7 @@ public class SecurityConfiguration {
 
                         // Dashboard
                         .requestMatchers("/dashboard/**").hasAnyAuthority("ADMIN", "BARBER")
+                        .requestMatchers(HttpMethod.GET, "/dashboard/barber/**").hasAuthority("ADMIN")
 
                         // Analytics
                         .requestMatchers("/analytics/**").hasAuthority("ADMIN")
