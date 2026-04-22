@@ -64,7 +64,7 @@ public class GoogleDriveService {
 
         final Drive service = getDriveService();
 
-        final String folderId = "11-1SBC_f_kL88tTLhxkCQfZU9bjlxrRy";
+        final String folderId = "1g4sQ_2OvnXZ15Y-xMR4JKF388BLypXGG";
 
         final File fileMetadata = new File();
         fileMetadata.setName(fileToUpload.getName());
@@ -127,7 +127,7 @@ public class GoogleDriveService {
 
     public List<File> listBackups() throws IOException, GeneralSecurityException {
         final Drive service = getDriveService();
-        final String folderId = "11-1SBC_f_kL88tTLhxkCQfZU9bjlxrRy";
+        final String folderId = "1g4sQ_2OvnXZ15Y-xMR4JKF388BLypXGG";
 
         final String query = String.format(
                 "'%s' in parents and trashed=false and name contains 'backup_'",
