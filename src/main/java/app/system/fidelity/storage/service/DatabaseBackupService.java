@@ -150,7 +150,6 @@ public class DatabaseBackupService {
         command.add("--file=" + outputFilePath);
 
         command.add("--clean");
-        command.add("--create");
         command.add("--if-exists");
         command.add("--no-owner");
         command.add("--no-privileges");
