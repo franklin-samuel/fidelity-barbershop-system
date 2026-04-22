@@ -31,6 +31,7 @@ public class GoogleDriveService {
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
     private static final String BACKUP_FOLDER_NAME = "database-backups";
     private static final int MAX_BACKUP_FILES = 7;
+    private static final String folderId = "0AK5xa5vHn4GbUk9PVA";
 
     private Drive driveService;
 
@@ -63,8 +64,6 @@ public class GoogleDriveService {
                 fileToUpload.length() / (1024 * 1024));
 
         final Drive service = getDriveService();
-
-        final String folderId = "1g4sQ_2OvnXZ15Y-xMR4JKF388BLypXGG";
 
         final File fileMetadata = new File();
         fileMetadata.setName(fileToUpload.getName());
@@ -127,8 +126,7 @@ public class GoogleDriveService {
 
     public List<File> listBackups() throws IOException, GeneralSecurityException {
         final Drive service = getDriveService();
-        final String folderId = "1g4sQ_2OvnXZ15Y-xMR4JKF388BLypXGG";
-
+        
         final String query = String.format(
                 "'%s' in parents and trashed=false and name contains 'backup_'",
                 folderId
