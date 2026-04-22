@@ -74,6 +74,7 @@ public class GoogleDriveService {
 
         final File uploadedFile = service.files()
                 .create(fileMetadata, mediaContent)
+                .setSupportsAllDrives(true)
                 .setFields("id, name, size, createdTime")
                 .execute();
 
@@ -94,6 +95,8 @@ public class GoogleDriveService {
 
         final FileList result = service.files().list()
                 .setQ(query)
+                .setSupportsAllDrives(true)
+                .setIncludeItemsFromAllDrives(true)
                 .setOrderBy("createdTime desc")
                 .setFields("files(id, name, createdTime)")
                 .execute();
