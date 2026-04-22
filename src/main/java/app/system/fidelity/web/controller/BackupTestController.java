@@ -2,6 +2,7 @@ package app.system.fidelity.web.controller;
 
 import app.system.fidelity.storage.scheduler.DatabaseBackupScheduler;
 import app.system.fidelity.storage.service.DatabaseBackupService;
+import app.system.fidelity.storage.service.GoogleDriveDebugService;
 import app.system.fidelity.storage.service.GoogleDriveService;
 import app.system.fidelity.web.commons.ApiResponse;
 import com.google.api.services.drive.model.File;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 public class BackupTestController {
 
     private final DatabaseBackupScheduler backupScheduler;
+    private final GoogleDriveDebugService debugService;
     private final DatabaseBackupService backupService;
     private final GoogleDriveService driveService;
 
@@ -45,6 +47,14 @@ public class BackupTestController {
             return ResponseEntity.ok(ApiResponse.error(
                     "Erro ao executar backup: " + e.getMessage()));
         }
+    }
+
+    @GetMapping("/run-tests")
+    public ResponseEntity<Map<String, Object>> runAllTests() {
+
+        Map<String, Object> results = debugService.runAllTests();
+
+        return ResponseEntity.ok(results);
     }
 
     @GetMapping("/list-local")
