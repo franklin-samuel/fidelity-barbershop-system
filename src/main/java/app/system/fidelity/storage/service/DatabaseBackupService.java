@@ -100,7 +100,7 @@ public class DatabaseBackupService {
         final Path backupPath = Paths.get(BACKUP_DIR);
         if (!Files.exists(backupPath)) {
             Files.createDirectories(backupPath);
-            log.info("Diretório de backups criado: {}", BACKUP_DIR);
+            log.info("Diretório de backups criado: {}.", BACKUP_DIR);
         }
     }
 
