@@ -45,7 +45,7 @@ public class GoogleDriveService {
 
 
         final GoogleCredentials credentials = GoogleCredentials.fromStream(
-                new FileInputStream("C:/Coding/projects/fidelity-barbershop-system/src/main/resources/nagaragem-494117-eaf5eb82910d.json")
+                new FileInputStream("/etc/secrets/nagaragem-494117-eaf5eb82910d.json")
         ).createScoped(Collections.singletonList("https://www.googleapis.com/auth/drive.file"));
 
         driveService = new Drive.Builder(httpTransport, JSON_FACTORY, new HttpCredentialsAdapter(credentials))
