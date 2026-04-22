@@ -5,6 +5,8 @@ target/
 !**/src/test/**/target/
 .env
 
+nagaragem-494117-eaf5eb82910d.json
+
 # Compiled class file
 *.class
 

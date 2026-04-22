@@ -1,7 +1,11 @@
 FROM eclipse-temurin:21-jdk-jammy
 
 ENV TZ=America/Fortaleza
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+RUN apt-get update && \
+    apt-get install -y postgresql-client && \
+    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
+    echo $TZ > /etc/timezone && \
+    rm -rf /var/lib/apt/lists/* \
 
 WORKDIR /app
 
