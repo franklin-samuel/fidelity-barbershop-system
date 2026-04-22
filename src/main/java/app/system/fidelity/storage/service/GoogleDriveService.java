@@ -64,7 +64,7 @@ public class GoogleDriveService {
 
         final Drive service = getDriveService();
 
-        final String folderId = getOrCreateBackupFolder(service);
+        final String folderId = "11-1SBC_f_kL88tTLhxkCQfZU9bjlxrRy";
 
         final File fileMetadata = new File();
         fileMetadata.setName(fileToUpload.getName());
@@ -82,43 +82,6 @@ public class GoogleDriveService {
         cleanOldBackupsFromDrive(service, folderId);
 
         return uploadedFile.getId();
-    }
-
-
-    private String getOrCreateBackupFolder(final Drive service) throws IOException {
-        final String query = String.format(
-                "name='%s' and mimeType='application/vnd.google-apps.folder' and trashed=false",
-                BACKUP_FOLDER_NAME
-        );
-
-        final FileList result = service.files().list()
-                .setQ(query)
-                .setSpaces("drive")
-                .setFields("files(id, name)")
-                .execute();
-
-        final List<File> folders = result.getFiles();
-
-        if (folders != null && !folders.isEmpty()) {
-            final String folderId = folders.get(0).getId();
-            log.info("Pasta de backups encontrada: {}", folderId);
-            return folderId;
-        }
-
-        log.info("Criando nova pasta de backups: {}", BACKUP_FOLDER_NAME);
-
-        final File folderMetadata = new File();
-        folderMetadata.setName(BACKUP_FOLDER_NAME);
-        folderMetadata.setMimeType("application/vnd.google-apps.folder");
-
-        final File folder = service.files()
-                .create(folderMetadata)
-                .setFields("id")
-                .execute();
-
-        log.info("Pasta de backups criada: {}", folder.getId());
-
-        return folder.getId();
     }
 
     private void cleanOldBackupsFromDrive(final Drive service, final String folderId) throws IOException {
@@ -161,7 +124,7 @@ public class GoogleDriveService {
 
     public List<File> listBackups() throws IOException, GeneralSecurityException {
         final Drive service = getDriveService();
-        final String folderId = getOrCreateBackupFolder(service);
+        final String folderId = "11-1SBC_f_kL88tTLhxkCQfZU9bjlxrRy";
 
         final String query = String.format(
                 "'%s' in parents and trashed=false and name contains 'backup_'",
