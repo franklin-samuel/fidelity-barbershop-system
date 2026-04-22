@@ -44,7 +44,7 @@ public class AppointmentRepositoryAdapter implements AppointmentRepositoryPort {
     public Appointment save(final Appointment model) {
         return of(repository.save(mapper.map(model)))
                 .map(mapper::map)
-                .orElseThrow(() -> new IllegalStateException("Failed to save appointment"));
+                .orElseThrow(() -> new IllegalStateException("Failed to save appointment."));
     }
 
     @Override
