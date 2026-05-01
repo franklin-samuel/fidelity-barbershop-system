@@ -28,7 +28,7 @@ public class SendWelcomeEmailAdapter implements SendWelcomeEmailPort {
             final String customerName = context.getProperty("customerName", String.class);
 
             if (customerEmail == null || customerEmail.isBlank()) {
-                log.warn("Email do cliente não fornecido, pulando envio de boas-vindas");
+                log.warn("Email do cliente não fornecido, pulando envio de boas-vindas...");
                 return CompletableFuture.completedFuture(null);
             }
 
