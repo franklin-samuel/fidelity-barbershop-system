@@ -159,7 +159,7 @@ public class AppointmentController {
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(ApiResponse.success(response, "Atendimento registrado com sucesso"));
+                .body(ApiResponse.success(response, "Atendimento registrado com sucesso!"));
     }
 
     @PatchMapping("/{id}")
