@@ -175,7 +175,7 @@ public class AppointmentController {
 
         final AppointmentResponse response = mapper.mapToResponse(updatedAppointment);
 
-        return ResponseEntity.ok(ApiResponse.success(response, "Cliente vinculado ao atendimento com sucesso!"));
+        return ResponseEntity.ok(ApiResponse.success(response, "Cliente vinculado ao atendimento com sucesso."));
     }
 
     @PostMapping("/{id}/delete")
