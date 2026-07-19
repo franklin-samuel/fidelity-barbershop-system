@@ -60,7 +60,7 @@ public class CustomerController {
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(ApiResponse.success(response, "Cliente criado com sucesso"));
+                .body(ApiResponse.success(response, "Cliente criado com sucesso!"));
 
 
     }
