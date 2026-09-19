@@ -78,6 +78,9 @@ public class SecurityConfiguration {
                         // Financial
                         .requestMatchers("/financial/**").hasAuthority("ADMIN")
 
+                        // Backup
+                        .requestMatchers("/backup/**").hasAuthority("ADMIN")
+
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

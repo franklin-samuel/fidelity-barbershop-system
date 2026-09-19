@@ -83,7 +83,12 @@ public class DatabaseBackupService {
 
         if (exitCode != 0) {
             log.error("Erro ao executar pg_dump. Exit code: {}. Output: {}", exitCode, output);
-            throw new RuntimeException("Falha ao criar backup do banco de dados. Exit code: " + exitCode);
+
+            final String details = output.toString().strip();
+            final String tail = details.length() > 600 ? details.substring(details.length() - 600) : details;
+
+            throw new RuntimeException("Falha ao criar backup do banco de dados. Exit code: " + exitCode
+                    + (tail.isEmpty() ? "" : " | " + tail));
         }
 
         if (!backupFile.exists() || backupFile.length() == 0) {
