@@ -8,7 +8,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.util.*;
 
@@ -100,6 +102,40 @@ public class EmailService {
         }
     }
 
+    public void sendBackupFailureAlert(
+            final List<String> toEmails,
+            final String trigger,
+            final String errorMessage,
+            final LocalDateTime failedAt
+    ) {
+        if (toEmails == null || toEmails.isEmpty()) {
+            log.warn("Nenhum destinatário fornecido para alerta de falha de backup");
+            return;
+        }
+
+        try {
+            final String subject = String.format("[%s] ⚠️ Falha no backup automático do banco de dados", barbershopName);
+
+            final Map<String, Object> variables = new HashMap<>();
+            variables.put("barbershopName", barbershopName);
+            variables.put("trigger", trigger != null ? trigger : "DESCONHECIDO");
+            variables.put("errorMessage", errorMessage != null ? errorMessage : "Motivo não informado");
+            variables.put("failedAt", formatDateTime(failedAt));
+
+            final String htmlContent = templateService.processTemplate("backup-failure-email", variables);
+
+            for (String email : toEmails) {
+                sendEmail(email, subject, htmlContent, null, null);
+            }
+
+            log.info("Alerta de falha de backup enviado com sucesso para {} destinatários", toEmails.size());
+
+        } catch (Exception e) {
+            log.error("Erro ao enviar email de alerta de falha de backup", e);
+            throw new RuntimeException("Falha ao enviar email de alerta de falha de backup", e);
+        }
+    }
+
     private void sendEmail(
             final String to,
             final String subject,
@@ -170,5 +206,10 @@ public class EmailService {
         if (value == null) return "0,00%";
         final String sign = value.compareTo(BigDecimal.ZERO) >= 0 ? "+" : "";
         return String.format("%s%.2f%%", sign, value);
+    }
+
+    private String formatDateTime(final LocalDateTime dateTime) {
+        if (dateTime == null) return "-";
+        return dateTime.format(DateTimeFormatter.ofPattern("dd/MM/yyyy 'às' HH:mm:ss"));
     }
 }

@@ -1,6 +1,7 @@
 package app.system.fidelity.storage.service;
 
 import app.system.fidelity.core.Context;
+import app.system.fidelity.core.messaging.SendBackupFailureAlertPort;
 import app.system.fidelity.core.storage.DatabaseBackupPort;
 import app.system.fidelity.core.storage.GoogleDriveStoragePort;
 import app.system.fidelity.domain.BackupStatus;
@@ -25,6 +26,7 @@ public class DatabaseBackupRunner {
 
     private final DatabaseBackupPort databaseBackupPort;
     private final GoogleDriveStoragePort googleDriveStoragePort;
+    private final SendBackupFailureAlertPort sendBackupFailureAlertPort;
 
     private final AtomicBoolean running = new AtomicBoolean(false);
 
@@ -99,15 +101,31 @@ public class DatabaseBackupRunner {
 
         } catch (Exception e) {
             log.error("[{}] ERRO no backup: {}", trigger, e.getMessage(), e);
+            final LocalDateTime failedAt = LocalDateTime.now(ZONE);
             status = status.failed(
-                    LocalDateTime.now(ZONE),
+                    failedAt,
                     backupFile != null ? backupFile.getName() : null,
                     e.getMessage()
             );
+            notifyBackupFailure(trigger, e.getMessage(), failedAt);
         } finally {
             log.info("[{}] Etapa 3/3: Removendo arquivo local temporário", trigger);
             deleteLocalFile(backupFile);
             running.set(false);
+        }
+    }
+
+    private void notifyBackupFailure(final String trigger, final String errorMessage, final LocalDateTime failedAt) {
+        try {
+            final Context alertContext = new Context();
+            alertContext.putProperty("trigger", trigger);
+            alertContext.putProperty("errorMessage", errorMessage);
+            alertContext.putProperty("failedAt", failedAt);
+
+            sendBackupFailureAlertPort.execute(alertContext);
+        } catch (Exception alertException) {
+            log.error("[{}] Falha ao enviar alerta de email sobre erro no backup: {}",
+                    trigger, alertException.getMessage(), alertException);
         }
     }
 
