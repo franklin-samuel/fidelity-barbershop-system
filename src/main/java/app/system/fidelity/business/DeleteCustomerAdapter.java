@@ -20,8 +20,12 @@ public class DeleteCustomerAdapter implements DeleteCustomerPort {
 
     public Void execute(final Context context) {
 
-        final UUID customerId = context.getProperty("id", UUID.class);
+        final UUID customerId = context.getProperty("customerId", UUID.class);
         final UUID authenticatedUserId = context.getProperty("authenticatedUserId", UUID.class);
+
+        if (customerId == null) {
+            throw new BusinessException("Cliente não encontrado.");
+        }
 
         if (authenticatedUserId == null) {
             throw new BusinessException("Usuário não autenticado.");
