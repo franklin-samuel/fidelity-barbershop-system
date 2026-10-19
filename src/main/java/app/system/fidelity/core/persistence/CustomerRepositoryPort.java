@@ -40,4 +40,6 @@ public interface CustomerRepositoryPort extends BaseRepositoryPort<Customer> {
 
     long countByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
 
+    void delete(UUID id);
+
 }

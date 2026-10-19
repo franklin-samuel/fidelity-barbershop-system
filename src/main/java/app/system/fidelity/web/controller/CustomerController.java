@@ -2,22 +2,26 @@ package app.system.fidelity.web.controller;
 
 import app.system.fidelity.core.Context;
 import app.system.fidelity.core.business.CreateCustomerPort;
+import app.system.fidelity.core.business.DeleteCustomerPort;
 import app.system.fidelity.core.business.GetLoyaltyStatusPort;
 import app.system.fidelity.core.business.UpdateCustomerPort;
 import app.system.fidelity.core.persistence.CustomerRepositoryPort;
 import app.system.fidelity.domain.Customer;
 
 import app.system.fidelity.domain.LoyaltyStatus;
+import app.system.fidelity.security.model.CustomUserDetails;
 import app.system.fidelity.web.commons.ApiResponse;
 import app.system.fidelity.web.mapper.CustomerMapper;
 import app.system.fidelity.web.model.request.CustomerRequest;
 import app.system.fidelity.web.model.request.CustomerUpdateRequest;
+import app.system.fidelity.web.model.request.UserDeleteRequest;
 import app.system.fidelity.web.model.response.CustomerResponse;
 import app.system.fidelity.web.model.response.LoyaltyStatusResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,6 +37,7 @@ public class CustomerController {
     private final UpdateCustomerPort  updateCustomerPort;
     private final CustomerMapper mapper;
     private final GetLoyaltyStatusPort getLoyaltyStatusPort;
+    private final DeleteCustomerPort deleteCustomerPort;
 
     @PostMapping
     public ResponseEntity<ApiResponse<CustomerResponse>> create(
@@ -135,6 +140,20 @@ public class CustomerController {
                 .build();
 
         return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> delete(
+            @PathVariable final UUID id,
+            @AuthenticationPrincipal final CustomUserDetails userDetails
+    ) {
+        final Context context = new Context();
+        context.putProperty("customerId", id);
+        context.putProperty("authenticatedUserId", userDetails.getUserId());
+
+        deleteCustomerPort.execute(context);
+
+        return ResponseEntity.ok(ApiResponse.success("Cliente deletado com sucesso!"));
     }
 
 }

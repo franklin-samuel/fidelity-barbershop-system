@@ -151,4 +151,9 @@ public class CustomerRepositoryAdapter implements CustomerRepositoryPort {
         return repository.countByCreatedAtBetween(start, end);
     }
 
+    @Override
+    public void delete(final UUID id) {
+        repository.deleteById(id);
+    }
+
 }
